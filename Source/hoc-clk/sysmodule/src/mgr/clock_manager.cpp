@@ -185,7 +185,23 @@ namespace clockManager {
         if (module == HocClkModule_GPU && board::GetSocType() == HocClkSocType_Mariko) {
             constexpr u32 kStep = 38400000;
             constexpr u32 kPcvStep = 76800000;
-            constexpr u32 kMax = 1228800000;
+
+            u32 kMax = 0;
+            for (u32 i = 0; i < count; i++) {
+                for (u32 j = 0; j < count; j++) {
+                    if (freqs[j] == freqs[i] + kStep) {
+                        kMax = freqs[j];
+                        break;
+                    }
+                }
+            }
+            
+            if (kMax == 0) {
+                for (u32 i = 0; i < count; i++) {
+                    if (freqs[i] > kMax)
+                        kMax = freqs[i];
+                }
+            }
 
             for (u32 f = kPcvStep; f <= kMax && gFreqTable[module].count < HOCCLK_FREQ_LIST_MAX; f += kStep) {
                 if (f % kPcvStep != 0) {
