@@ -71,6 +71,11 @@ namespace ams::ldr::hoc::pcv {
         return ((ins1 & ImmMask) ^ (ins2 & ImmMask)) == 0;
     };
 
+    /* Csel (Conditional Select) */
+    /*
+        SF | Op | S  |                   | RM             | Cond        | 0  | 0  | Rn        | Rd
+        31 | 30 | 29 | 28 27 26 25 24 23 | 20 19 18 17 16 | 15 14 13 12 | 11 | 10 | 9 8 7 6 5 | 4 3 2 1 0
+    */
     inline auto AsmCbzCompareOpcodeOnly = [](u32 ins1, u32 ins2) {
         return ((ins1 ^ ins2) >> 24) == 0;
     };
