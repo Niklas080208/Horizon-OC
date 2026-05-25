@@ -1334,9 +1334,140 @@ protected:
         ValueThresholds thresholdsDisabled(0, 0);
         this->listElement->addItem(new tsl::elm::CategoryHeader("Advanced"));
         if(IsMariko()) {
+            // tBreak / low-high timing graph (live, reads config each frame)
+            {
+                HocClkConfigValueList* cfgPtr = this->configList;
+                auto* tbreakGraph = new tsl::elm::CustomDrawer(
+                    [cfgPtr](tsl::gfx::Renderer* renderer, s32 x, s32 y, s32 w, s32 h) {
+                        const s32      t6  = (s32)cfgPtr->values[KipConfigValue_t6_tRTW];
+                        const s32      t7  = (s32)cfgPtr->values[KipConfigValue_t7_tWTR];
+                        const s32      lt6 = (s32)cfgPtr->values[KipConfigValue_low_t6_tRTW];
+                        const s32      lt7 = (s32)cfgPtr->values[KipConfigValue_low_t7_tWTR];
+                        const s32      t2c = (s32)cfgPtr->values[KipConfigValue_t2_tRP_cap];
+                        const uint32_t tbk = (uint32_t)cfgPtr->values[KipConfigValue_timingEmcTbreak];
+
+                        const tsl::Color cT6   = tsl::Color(4, 14, 15, 15);
+                        const tsl::Color cT7   = tsl::Color(15, 9,  2, 15);
+                        const tsl::Color cT2   = tsl::Color(12, 4, 15, 15);
+                        const tsl::Color cAxis = tsl::Color(5,  5,  5, 15);
+                        const tsl::Color cTbk  = tsl::Color(7,  7,  7, 10);
+
+                        const s32 gx    = x + 52;
+                        const s32 gw    = w - 64;
+                        const s32 gy    = y + 14;
+                        const s32 gh    = 72;
+                        const s32 axisY = gy + gh;
+
+                        // Y: value 0 = bottom, value 9 = top
+                        auto valY = [&](s32 v) -> s32 { return axisY - v * gh / 9; };
+
+                        constexpr uint32_t kRMin = 1600000u, kRMax = 3300000u;
+                        auto freqX = [&](uint32_t kHz) -> s32 {
+                            if (kHz <= kRMin) return gx;
+                            if (kHz >= kRMax) return gx + gw;
+                            return gx + (s32)((uint64_t)(kHz - kRMin) * (uint32_t)gw / (kRMax - kRMin));
+                        };
+
+                        // Y-axis guide lines at 0, 3, 6, 9
+                        for (int v : {0, 3, 6, 9}) {
+                            char buf[4]; snprintf(buf, sizeof(buf), "%d", v);
+                            renderer->drawString(buf, false, x + 4, valY(v) + 5, 12, cAxis);
+                            renderer->drawRect(gx, valY(v), gw, 1, tsl::Color(3, 3, 3, 15));
+                        }
+                        renderer->drawRect(gx, gy, 1, gh + 1, cAxis);
+                        renderer->drawRect(gx, axisY, gw, 1, cAxis);
+
+                        // tBreak vertical divider
+                        if (tbk != 0) {
+                            s32 tx = freqX(tbk);
+                            renderer->drawRect(tx, gy, 1, gh, cTbk);
+                        }
+
+                        // Step line: lowVal below tBreak, hiVal at/above tBreak
+                        auto drawTimingLine = [&](s32 lowVal, s32 hiVal, const tsl::Color& c) {
+                            if (tbk == 0 || tbk <= kRMin) {
+                                s32 yy = valY(hiVal) + 1;
+                                renderer->drawRect(gx, yy, gw, 2, c);
+                                renderer->drawCircle(gx,          yy + 1, 3, true, c);
+                                renderer->drawCircle(gx + gw - 1, yy + 1, 3, true, c);
+                            } else {
+                                s32 tx   = freqX(tbk);
+                                s32 yLow = valY(lowVal) + 1;
+                                s32 yHi  = valY(hiVal)  + 1;
+                                renderer->drawRect(gx, yLow, tx - gx,         2, c);
+                                renderer->drawRect(tx, yHi,  gx + gw - tx,    2, c);
+                                if (yLow != yHi) {
+                                    s32 topY = yLow < yHi ? yLow : yHi;
+                                    s32 botY = yLow > yHi ? yLow : yHi;
+                                    renderer->drawRect(tx, topY, 2, botY - topY + 2, c);
+                                }
+                                renderer->drawCircle(gx,          yLow + 1, 3, true, c);
+                                renderer->drawCircle(tx,          yLow + 1, 3, true, c);
+                                renderer->drawCircle(tx,          yHi  + 1, 3, true, c);
+                                renderer->drawCircle(gx + gw - 1, yHi  + 1, 3, true, c);
+                            }
+                        };
+
+                        drawTimingLine(lt6, t6, cT6);
+                        drawTimingLine(lt7, t7, cT7);
+
+                        // t2 tRP cap: constant line
+                        s32 yT2 = valY(t2c) + 1;
+                        renderer->drawRect(gx, yT2, gw, 2, cT2);
+                        renderer->drawCircle(gx,          yT2 + 1, 3, true, cT2);
+                        renderer->drawCircle(gx + gw - 1, yT2 + 1, 3, true, cT2);
+
+                        // X-axis ruler with sideways bitmap-font labels
+                        static const uint8_t kDigBmp[10][5] = {
+                            {7,5,5,5,7},{6,2,2,2,7},{7,1,7,4,7},{7,1,3,1,7},{5,5,7,1,1},
+                            {7,4,7,1,7},{7,4,7,5,7},{7,1,1,2,2},{7,5,7,5,7},{7,5,7,1,7},
+                        };
+                        const s32 pix = 2, charH = 3*pix, charW = 5*pix, charGap = 1;
+                        auto drawSidewaysMHz = [&](uint32_t mhz, s32 cx, s32 startY, const tsl::Color& c) {
+                            char buf[8]; snprintf(buf, sizeof(buf), "%u", mhz);
+                            s32 ox = cx - charW / 2;
+                            for (int ci = 0; buf[ci]; ci++) {
+                                int d = buf[ci] - '0';
+                                if (d < 0 || d > 9) continue;
+                                s32 cy = startY + ci * (charH + charGap);
+                                for (int r = 0; r < 5; r++)
+                                    for (int col = 0; col < 3; col++)
+                                        if ((kDigBmp[d][r] >> (2-col)) & 1)
+                                            renderer->drawRect(ox + (4-r)*pix, cy + col*pix, pix, pix, c);
+                            }
+                        };
+                        static const uint32_t kRulerMHz[] = {
+                            1600, 1733, 1866, 2000, 2133, 2266,
+                            2400, 2533, 2666, 2800, 2933, 3066, 3200, 3300,
+                        };
+                        for (uint32_t mhz : kRulerMHz) {
+                            s32 fx = freqX(mhz * 1000u);
+                            renderer->drawRect(fx, axisY, 1, 4, cAxis);
+                            drawSidewaysMHz(mhz, fx, axisY + 6, cAxis);
+                        }
+
+                        // Legend
+                        s32 ly = y + h - 14;
+                        renderer->drawRect(gx,        ly, 14, 3, cT6);
+                        renderer->drawString("t6 tRTW", false, gx + 17,  ly + 5, 12, cT6);
+                        renderer->drawRect(gx + 80,   ly, 14, 3, cT7);
+                        renderer->drawString("t7 tWTR", false, gx + 97,  ly + 5, 12, cT7);
+                        renderer->drawRect(gx + 165,  ly, 14, 3, cT2);
+                        renderer->drawString("t2 cap",  false, gx + 182, ly + 5, 12, cT2);
+                    }
+                );
+                tbreakGraph->setBoundaries(0, 0, tsl::cfg::FramebufferWidth, 150);
+                this->listElement->addItem(tbreakGraph);
+            }
+
             addConfigButton(KipConfigValue_timingEmcTbreak, "RAM-Timing tBreak", ValueRange(0, 1, 1, "", 1), "tBreak", &thresholdsDisabled, {}, timingTbreakFreqs, false, true);
             addConfigTrackbar(KipConfigValue_low_t6_tRTW, "Low t6 tRTW",      ValueRange(0,  9, 1));
             addConfigTrackbar(KipConfigValue_low_t7_tWTR, "Low t7 tWTR",      ValueRange(0,  9, 1));
+            {
+                auto* spacer = new tsl::elm::CustomDrawer([](tsl::gfx::Renderer*, s32, s32, s32, s32){});
+                spacer->setBoundaries(0, 0, tsl::cfg::FramebufferWidth, 8);
+                this->listElement->addItem(spacer);
+            }
             addConfigTrackbar(KipConfigValue_t2_tRP_cap,  "1333WL t2 RP Cap", ValueRange(0,  8, 1));
         }
         addMappedConfigTrackbar(KipConfigValue_t6_tRTW_fine_tune, "t6 tRTW Fine Tune",
