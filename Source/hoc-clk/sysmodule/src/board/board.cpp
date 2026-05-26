@@ -76,7 +76,6 @@ namespace board {
         u32 hidrev = *(u32*)(apbVirtAddr + APB_MISC_GP_HIDREV);
         if (((hidrev >> 4) & 0xF) >= GP_HIDREV_MAJOR_T210B01) {
             gSocType = HocClkSocType_Mariko;
-            CacheGpuVoltTable();
         } else {
             gSocType = HocClkSocType_Erista;
         }
@@ -194,6 +193,7 @@ namespace board {
         display::Initialize(&cfg);
 
         CacheDfllData();
+        CacheGpuVoltTable();
     }
 
     void Exit() {

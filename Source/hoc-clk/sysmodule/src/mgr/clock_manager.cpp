@@ -368,7 +368,7 @@ namespace clockManager {
 
     void DVFSReset()
     {
-        if (board::GetSocType() == HocClkSocType_Mariko && config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
+        if (config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
             board::PcvHijackGpuVolts(0); // Reset to vMin
 
             u32 targetHz = gContext.overrideFreqs[HocClkModule_GPU];
@@ -500,7 +500,7 @@ namespace clockManager {
                     );
 
                     // The logic MUST be done in this order otherwise you WILL get crashes
-                    if (module == HocClkModule_MEM && board::GetSocType() == HocClkSocType_Mariko && targetHz > oldHz && config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
+                    if (module == HocClkModule_MEM && targetHz > oldHz && config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
                         ApplyGpuDvfs(targetHz);
                     }
 
@@ -511,11 +511,11 @@ namespace clockManager {
                         gContext.stable.freqs[module] = nearestHz;
                     }
 
-                    if (module == HocClkModule_MEM && board::GetSocType() == HocClkSocType_Mariko && targetHz < oldHz && config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
+                    if (module == HocClkModule_MEM && targetHz < oldHz && config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
                         ApplyGpuDvfs(targetHz);
                     }
 
-                    if(module == HocClkModule_MEM && board::GetSocType() == HocClkSocType_Mariko && config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack)
+                    if(module == HocClkModule_MEM && config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack)
                         didHijackPcv = false;
                 }
             } else {
@@ -549,7 +549,7 @@ namespace clockManager {
         // restore clocks to stock values on app or profile change
         if (hasChanged) {
             board::ResetToStock();
-            if (board::GetSocType() == HocClkSocType_Mariko && config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
+            if (config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
                 board::PcvHijackGpuVolts(0);
                 board::ResetToStockGpu();
             }

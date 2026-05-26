@@ -2302,7 +2302,6 @@ protected:
             false
         );
 
-        if (IsMariko()) {
             std::vector<NamedValue> dvfsOffset = {
                 NamedValue("-80 mV", 0xFFFFFFB0),
                 NamedValue("-75 mV", 0xFFFFFFB5),
@@ -2345,7 +2344,6 @@ protected:
             );
 
             addConfigButton(HocClkConfigValue_DVFSOffset, "GPU DVFS Offset", ValueRange(0, 12, 1, "", 0), "GPU DVFS Offset", &thresholdsDisabled, {}, dvfsOffset, false);
-        }
 
         tsl::elm::ListItem* customTableSubmenu = new tsl::elm::ListItem("GPU Voltage Table");
         customTableSubmenu->setClickListener([](u64 keys) {

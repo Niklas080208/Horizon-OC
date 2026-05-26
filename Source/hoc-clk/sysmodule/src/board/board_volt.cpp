@@ -359,7 +359,7 @@ namespace board {
                 }
 
                 /* Assuming mariko. */
-                const u32 vmax = 800;
+                u32 vmax = GetSocType() == HocClkSocType_Mariko ? 800 : 950;
                 constexpr u32 GpuVoltageTableOffset = 312;
                 if (!std::memcmp(&buffer[index + GpuVoltageTableOffset], &vmax, sizeof(vmax))) {
                     std::memcpy(voltData.voltTable, &buffer[index + GpuVoltageTableOffset], sizeof(voltData.voltTable));
@@ -378,7 +378,7 @@ namespace board {
                 }
 
                 for(int i = 0; i < (int)std::size(voltData.voltTable); ++i) {
-                    fileUtils::LogLine("[dvfs] gpu volt %d: %u mV", i, voltData.voltTable[i]);
+                    fileUtils::LogLine("[dvfs] gpu volt %d: %u mV", i, voltData.voltTable[0][i]);
                 }
                 return;
             }
@@ -421,42 +421,63 @@ namespace board {
     }
 
     u32 GetMinimumGpuVmin(u32 freqMhz, u32 bracket) {
-        static const u32 ramTable[][22] = {
-            { 2133, 2200, 2266, 2300, 2366, 2400, 2433, 2466, 2533, 2566, 2600, 2633, 2700, 2733, 2766, 2833, 2866, 2900, 2933, 3033, 3066, 3100, }, // Bracket 0
-            { 2300, 2366, 2433, 2466, 2533, 2566, 2633, 2700, 2733, 2800, 2833, 2900, 2933, 2966, 3033, 3066, 3100, 3133, 3166, 3200, 3233, 3266, }, // Bracket 1
-            { 2433, 2466, 2533, 2566, 2600, 2666, 2766, 2800, 2833, 2866, 2933, 2966, 3033, 3066, 3100, 3133, 3166, 3200, 3233, 3300, 3333, 3366, }, // Bracket 2
-            { 2500, 2533, 2600, 2633, 2666, 2733, 2800, 2866, 2900, 2966, 3033, 3100, 3166, 3200, 3233, 3266, 3300, 3333, 3366, 3400, 3400, 3400, }, // Bracket 3
-        };
+        u32 baseVolt = 800;
+        if(GetSocType() == HocClkSocType_Mariko) {
+            static const u32 ramTable[][22] = {
+                { 2133, 2200, 2266, 2300, 2366, 2400, 2433, 2466, 2533, 2566, 2600, 2633, 2700, 2733, 2766, 2833, 2866, 2900, 2933, 3033, 3066, 3100, }, // Bracket 0
+                { 2300, 2366, 2433, 2466, 2533, 2566, 2633, 2700, 2733, 2800, 2833, 2900, 2933, 2966, 3033, 3066, 3100, 3133, 3166, 3200, 3233, 3266, }, // Bracket 1
+                { 2433, 2466, 2533, 2566, 2600, 2666, 2766, 2800, 2833, 2866, 2933, 2966, 3033, 3066, 3100, 3133, 3166, 3200, 3233, 3300, 3333, 3366, }, // Bracket 2
+                { 2500, 2533, 2600, 2633, 2666, 2733, 2800, 2866, 2900, 2966, 3033, 3100, 3166, 3200, 3233, 3266, 3300, 3333, 3366, 3400, 3400, 3400, }, // Bracket 3
+            };
 
-        static const u32 gpuVoltArray[] = { 590, 600, 610, 620, 630, 640, 650, 660, 670, 680, 690, 700, 710, 720, 730, 740, 750, 760, 770, 780, 790, 800, };
+            static const u32 gpuVoltArray[] = { 590, 600, 610, 620, 630, 640, 650, 660, 670, 680, 690, 700, 710, 720, 730, 740, 750, 760, 770, 780, 790, 800, };
 
-        if (freqMhz <= 1600) return 0; // DVFS doesnt work below 1600MHz, it will just use vMin
-        if (bracket >= std::size(ramTable)) bracket = 0;
+            if (freqMhz <= 1600) return 0; // DVFS doesnt work below 1600MHz, it will just use vMin
+            if (bracket >= std::size(ramTable)) bracket = 0;
 
-        u32 bracketStart = ramTable[bracket][0];
+            u32 bracketStart = ramTable[bracket][0];
+            
         
-    
-        u32 rampStartVolt = (bracket == 0) ? 535 : 525; // Do not touch!
-        u32 rampSpan = 590 - rampStartVolt; 
+            u32 rampStartVolt = (bracket == 0) ? 535 : 525; // Do not touch!
+            u32 rampSpan = 590 - rampStartVolt; 
 
 
-        if (freqMhz >= 1633 && freqMhz < bracketStart) {
-            u32 raw = rampStartVolt + ((freqMhz - 1633) * rampSpan) / (bracketStart - 1633);
-            u32 volt = ((raw + 2) / 5) * 5;
-            if (volt < rampStartVolt) volt = rampStartVolt;
-            if (volt > 590) volt = 590;
-            return volt;
-        }
+            if (freqMhz >= 1633 && freqMhz < bracketStart) {
+                u32 raw = rampStartVolt + ((freqMhz - 1633) * rampSpan) / (bracketStart - 1633);
+                u32 volt = ((raw + 2) / 5) * 5;
+                if (volt < rampStartVolt) volt = rampStartVolt;
+                if (volt > 590) volt = 590;
+                return volt;
+            }
 
 
-        u32 baseVolt = gpuVoltArray[std::size(gpuVoltArray) - 1];
-        for (u32 i = 0; i < std::size(gpuVoltArray); ++i) {
-            if (freqMhz <= ramTable[bracket][i]) {
-                baseVolt = gpuVoltArray[i];
-                break;
+            baseVolt = gpuVoltArray[std::size(gpuVoltArray) - 1];
+            for (u32 i = 0; i < std::size(gpuVoltArray); ++i) {
+                if (freqMhz <= ramTable[bracket][i]) {
+                    baseVolt = gpuVoltArray[i];
+                    break;
+                }
+            }
+        } else {
+            static const u32 ramTable[][17] = {
+                { 1733, 1800, 1866, 1920, 1958, 1996, 2035, 2073, 2112, 2131, 2150, 2169, 2188, 2227, 2265, 2304, 2342}, // Bracket 0
+                { 1800, 1866, 1920, 1958, 1996, 2035, 2073, 2112, 2131, 2150, 2169, 2188, 2227, 2265, 2304, 2342, 2380}, // Bracket 1
+            };
+
+            static const u32 gpuVoltArray[17] = { 725, 730, 735, 740, 755, 760, 765, 770, 785, 790, 795, 800, 805, 810, 815, 820, 825};
+
+            if (freqMhz <= 1600) return 0; // DVFS doesnt work below 1600MHz, it will just use vMin
+            if (bracket >= std::size(ramTable)) bracket = 0;
+
+            baseVolt = gpuVoltArray[std::size(gpuVoltArray) - 1];
+            for (u32 i = 0; i < std::size(gpuVoltArray); ++i) {
+                if (freqMhz <= ramTable[bracket][i]) {
+                    baseVolt = gpuVoltArray[i];
+                    break;
+                }
             }
         }
-
+        
         return baseVolt;
     }
 }
