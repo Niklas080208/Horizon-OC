@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(\\(Get-Item \"c:\\\\Users\\\\sould\\\\Documents\\\\GitHub\\\\Horizon-OC\\\\Source\\\\hoc-clk\\\\assets\\\\hoc.rgba\"\\).Length)",
+      "PowerShell(python --version)",
+      "PowerShell(magick --version 2>$null)",
+      "PowerShell(convert --version 2>$null)"
+    ]
+  }
+}

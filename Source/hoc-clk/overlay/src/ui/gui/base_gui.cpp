@@ -32,12 +32,24 @@
 #include <math.h>
 
 #define LOGO_X 20
-#define LOGO_Y 50
+#define LOGO_Y 60
 #define LOGO_LABEL_FONT_SIZE 45
 
-#define VERSION_X (LOGO_X + 250)
+#define TEXT_Y 57
+
+#define LOGO_IMG_W 50
+#define LOGO_IMG_H 50
+#define LOGO_IMG_PAD 8
+#define LOGO_TEXT_X (LOGO_X + LOGO_IMG_W + LOGO_IMG_PAD)
+
+#define VERSION_X (LOGO_TEXT_X + 185)
 #define VERSION_Y (LOGO_Y - 40)
 #define VERSION_FONT_SIZE 15
+
+extern "C" {
+    extern const u8 hoc_rgba[];
+    extern const u32 hoc_rgba_size;
+}
 
 std::string getVersionString() {
     char buf[0x100] = "";
@@ -48,10 +60,10 @@ std::string getVersionString() {
     return std::string(buf);
 }
 
-static constexpr tsl::Color dynamicLogoRGB1 = tsl::Color(0, 15, 3, 15);
-static constexpr tsl::Color dynamicLogoRGB2 = tsl::Color(0, 8, 1, 15);
-static constexpr tsl::Color STATIC_GREEN     = tsl::Color(0, 15, 0, 15);
-const std::string name = "Horizon OC Gaea";
+static constexpr tsl::Color dynamicLogoRGB1 = tsl::Color( 7, 15, 15, 15);
+static constexpr tsl::Color dynamicLogoRGB2 = tsl::Color( 2,  8, 11, 15);
+static constexpr tsl::Color STATIC_TEAL     = tsl::Color( 7, 15, 15, 15);
+const std::string name = " Horizon OC";
 
 static s32 drawDynamicUltraText(
     tsl::gfx::Renderer* renderer,
@@ -67,7 +79,6 @@ static s32 drawDynamicUltraText(
 
     const u64 currentTime_ns = armTicksToNs(armGetSystemTick());
     const double timeNow = static_cast<double>(currentTime_ns) / 1e9;
-    const double timeBase = fmod(timeNow, cycleDuration);
 
     const double waveScale = 2.0 * M_PI / cycleDuration;
 
@@ -76,7 +87,7 @@ static s32 drawDynamicUltraText(
         char letter = name[i];
         if (letter == '\0') break;
 
-        double phase = waveScale * (timeBase + i * 0.12);
+        double phase = waveScale * (timeNow + i * 0.12);
 
         double raw = cos(phase);
         double n = (raw + 1.0) * 0.5;
@@ -87,13 +98,13 @@ static s32 drawDynamicUltraText(
         double brightness = 0.75 + glow * 0.25;
 
         u8 r = static_cast<u8>(
-            (dynamicLogoRGB1.r + (dynamicLogoRGB2.r - dynamicLogoRGB1.r) * blend) * brightness
+            ((int)dynamicLogoRGB1.r + ((int)dynamicLogoRGB2.r - (int)dynamicLogoRGB1.r) * blend) * brightness
         );
         u8 g = static_cast<u8>(
-            (dynamicLogoRGB1.g + (dynamicLogoRGB2.g - dynamicLogoRGB1.g) * blend) * brightness
+            ((int)dynamicLogoRGB1.g + ((int)dynamicLogoRGB2.g - (int)dynamicLogoRGB1.g) * blend) * brightness
         );
         u8 b = static_cast<u8>(
-            (dynamicLogoRGB1.b + (dynamicLogoRGB2.b - dynamicLogoRGB1.b) * blend) * brightness
+            ((int)dynamicLogoRGB1.b + ((int)dynamicLogoRGB2.b - (int)dynamicLogoRGB1.b) * blend) * brightness
         );
 
         r = std::clamp<u8>(r, 0, 15);
@@ -121,12 +132,14 @@ static s32 drawDynamicUltraText(
 }
 
 void BaseGui::preDraw(tsl::gfx::Renderer* renderer) {
+    renderer->drawBitmap(LOGO_X, LOGO_Y - LOGO_LABEL_FONT_SIZE, LOGO_IMG_W, LOGO_IMG_H, hoc_rgba);
+
     drawDynamicUltraText(
         renderer,
-        LOGO_X,
-        LOGO_Y,
+        LOGO_TEXT_X,
+        TEXT_Y,
         LOGO_LABEL_FONT_SIZE,
-        STATIC_GREEN,
+        STATIC_TEAL,
         false
     );
 }
