@@ -149,13 +149,13 @@ void BaseGui::preDraw(tsl::gfx::Renderer* renderer) {
         false
     );
 
-    static const std::string versionStr = "Version " + getVersionString();
+    static const std::string versionStr = "Version " + getVersionString() + "  \"Gaea\"";
     static constexpr tsl::Color versionColor(9, 9, 9, 15);
     static constexpr s32 vx = LOGO_TEXT_X + 15;
     static constexpr s32 vy = TEXT_Y + 18;
     static constexpr s32 fs = 15;
     static constexpr s32 skew = 3;
-    static constexpr s32 passes = 10;
+    static constexpr s32 passes = 25;
     for (s32 i = 0; i < passes; i++) {
         s32 sliceY = (vy - fs) + i * fs / passes;
         s32 sliceH = fs / passes + 1;
