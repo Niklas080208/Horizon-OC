@@ -506,6 +506,25 @@ namespace clockManager {
                 HandleFreqReset((HocClkModule)module, isBoost, didHijackPcv);
             }
         }
+
+        if (config::GetConfigValue(HocClkConfigValue_AutoRAMCPUOverclock) && !skipCpuDueToBoost && !governor::isCpuGovernorEnabled) {
+            u32 ramHz = gContext.freqs[HocClkModule_MEM];
+            u32 threshold = (u32)config::GetConfigValue(HocClkConfigValue_AutoRamCpuRamOCThreshold) * 1000;
+            if (ramHz >= threshold) {
+                u32 cpuOverrideHz = (u32)config::GetConfigValue(HocClkConfigValue_AutoRamCpuCpuOCFreq) * 1000;
+                maxHz = GetMaxAllowedHz(HocClkModule_CPU, gContext.profile);
+                nearestHz = GetNearestHz(HocClkModule_CPU, cpuOverrideHz, maxHz);
+                fileUtils::LogLine(
+                    "[mgr] AutoRAMCPUOC CPU clock set : %u.%u MHz (ram = %u.%u MHz)",
+                    nearestHz / 1000000, nearestHz / 100000 - nearestHz / 1000000 * 10,
+                    ramHz / 1000000, ramHz / 100000 - ramHz / 1000000 * 10
+                );
+                board::SetHz(HocClkModule_CPU, nearestHz);
+                gContext.freqs[HocClkModule_CPU] = nearestHz;
+                if (HocClkModule_CPU < HocClkModuleStable_EnumMax)
+                    gContext.stable.freqs[HocClkModule_CPU] = nearestHz;
+            }
+        }
     }
 
     bool RefreshContext()

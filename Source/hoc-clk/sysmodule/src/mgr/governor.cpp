@@ -162,6 +162,15 @@ namespace governor {
 
                     if (++cpuTick > 50) {
                         minHz = config::GetConfigValue(HocClkConfigValue_CpuGovernorMinimumFreq);
+                        if (config::GetConfigValue(HocClkConfigValue_AutoRAMCPUOverclock)) {
+                            u32 ramHz = clockManager::gContext.freqs[HocClkModule_MEM];
+                            u32 threshold = (u32)config::GetConfigValue(HocClkConfigValue_AutoRamCpuRamOCThreshold) * 1000;
+                            if (ramHz >= threshold) {
+                                u32 overrideHz = (u32)config::GetConfigValue(HocClkConfigValue_AutoRamCpuCpuOCFreq) * 1000;
+                                if (overrideHz > minHz)
+                                    minHz = overrideHz;
+                            }
+                        }
                         cpuTick = 0;
                     }
 

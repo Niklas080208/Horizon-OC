@@ -69,6 +69,10 @@ typedef enum {
 
     HocClkConfigValue_AulaDisplayColorPreset,
     HocClkConfigValue_MarikoMiddleFreqs,
+    
+    HocClkConfigValue_AutoRAMCPUOverclock,
+    HocClkConfigValue_AutoRamCpuCpuOCFreq,
+    HocClkConfigValue_AutoRamCpuRamOCThreshold,
 
     KipConfigValue_custRev,
     KipConfigValue_KipVersion,
@@ -274,6 +278,14 @@ static inline const char* hocclkFormatConfigValue(HocClkConfigValue val, bool pr
             return pretty ? "Aula Display Color Preset" : "aula_color_preset";
         case HocClkConfigValue_MarikoMiddleFreqs:
             return pretty ? "Mariko Middle Clocks" : "mariko_middle_freqs";
+
+        case HocClkConfigValue_AutoRAMCPUOverclock:
+            return pretty ? "Auto High RAM CPU OC" : "auto_high_ram_cpu_oc";
+        case HocClkConfigValue_AutoRamCpuCpuOCFreq:
+            return pretty ? "Auto High RAM CPU OC Freq" : "auto_ram_cpu_cpu_oc_freq";
+        case HocClkConfigValue_AutoRamCpuRamOCThreshold:
+            return pretty ? "Auto High RAM CPU OC RAM Threshold" : "auto_ram_cpu_ram_oc_threshold";
+
         // KIP config values
         case KipConfigValue_custRev:
             return pretty ? "Custom Revision" : "kip_cust_rev";
@@ -492,7 +504,12 @@ static inline uint64_t hocclkDefaultConfigValue(HocClkConfigValue val)
         case HocClkConfigValue_ThermalThrottle:
         case HocClkConfigValue_IsFirstLoad:
         case HocClkConfigValue_DVFSMode:
+        case HocClkConfigValue_AutoRAMCPUOverclock:
             return 1ULL;
+        case HocClkConfigValue_AutoRamCpuCpuOCFreq:
+            return 1683000ULL;
+        case HocClkConfigValue_AutoRamCpuRamOCThreshold:
+            return 2133000ULL;
         case HocClkConfigValue_ThermalThrottleThreshold:
             return 70ULL;
         case HocClkConfigValue_CpuGovernorMinimumFreq:
@@ -532,6 +549,7 @@ static inline uint64_t hocclkValidConfigValue(HocClkConfigValue val, uint64_t in
         case HocClkConfigValue_LiveCpuUv:
         case HocClkConfigValue_GPUSchedulingMethod:
         case HocClkConfigValue_MarikoMiddleFreqs:
+        case HocClkConfigValue_AutoRAMCPUOverclock:
             return (input & 0x1) == input;
             
         case KipConfigValue_KipVersion:
@@ -647,6 +665,8 @@ static inline uint64_t hocclkValidConfigValue(HocClkConfigValue val, uint64_t in
         case HocClkConfigValue_MemoryFrequencyMeasurementMode:
         case HocClkConfigValue_RamDisplayUnit:
         case HocClkConfigValue_AulaDisplayColorPreset:
+        case HocClkConfigValue_AutoRamCpuCpuOCFreq:
+        case HocClkConfigValue_AutoRamCpuRamOCThreshold:
             return true;
         case HocClkConfigValue_BatteryChargeCurrent:
             return ((input >= 1024) && (input <= 3072)) || !input;

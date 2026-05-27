@@ -2037,6 +2037,20 @@ protected:
                 NamedValue("2601 MHz", 2601000),
                 NamedValue("2703 MHz", 2703000),
             };
+            std::vector<NamedValue> ClkOptionsRamOc = {
+                NamedValue("1581 MHz", 1581000),
+                NamedValue("1683 MHz", 1683000),
+                NamedValue("1785 MHz", 1785000),
+                NamedValue("1887 MHz", 1887000),
+                NamedValue("1963 MHz", 1963500),
+                NamedValue("2091 MHz", 2091000),
+                NamedValue("2193 MHz", 2193000),
+                NamedValue("2295 MHz", 2295000),
+                NamedValue("2397 MHz", 2397000),
+                NamedValue("2499 MHz", 2499000),
+                NamedValue("2601 MHz", 2601000),
+                NamedValue("2703 MHz", 2703000),
+            };
 
             addConfigButton(
                 KipConfigValue_marikoCpuBoostClock,
@@ -2048,6 +2062,85 @@ protected:
                 ClkOptions,
                 false,
                 true
+            );
+
+            std::vector<NamedValue> emcMaxClock = {
+                NamedValue("1600 MHz", 1600000),
+                NamedValue("1633 MHz", 1633000),
+                NamedValue("1666 MHz", 1666000),
+                NamedValue("1700 MHz", 1700000),
+                NamedValue("1733 MHz", 1733000),
+                NamedValue("1766 MHz", 1766000),
+                NamedValue("1800 MHz", 1800000),
+                NamedValue("1833 MHz", 1833000),
+                NamedValue("1866 MHz", 1866000, "JEDEC."),
+                NamedValue("1900 MHz", 1900000),
+                NamedValue("1933 MHz", 1933000),
+                NamedValue("1966 MHz", 1966000),
+                NamedValue("1996 MHz", 1996800, "JEDEC."),
+                NamedValue("2000 MHz", 2000000),
+                NamedValue("2033 MHz", 2033000),
+                NamedValue("2066 MHz", 2066000),
+                NamedValue("2100 MHz", 2100000),
+                NamedValue("2133 MHz", 2133000, "JEDEC."),
+                NamedValue("2166 MHz", 2166000),
+                NamedValue("2200 MHz", 2200000),
+                NamedValue("2233 MHz", 2233000),
+                NamedValue("2266 MHz", 2266000),
+                NamedValue("2300 MHz", 2300000),
+                NamedValue("2333 MHz", 2333000),
+                NamedValue("2366 MHz", 2366000),
+                NamedValue("2400 MHz", 2400000, "JEDEC."),
+                NamedValue("2433 MHz", 2433000),
+                NamedValue("2466 MHz", 2466000),
+                NamedValue("2500 MHz", 2500000),
+                NamedValue("2533 MHz", 2533000),
+                NamedValue("2566 MHz", 2566000),
+                NamedValue("2600 MHz", 2600000),
+                NamedValue("2633 MHz", 2633000),
+                NamedValue("2666 MHz", 2666000, "JEDEC."),
+                NamedValue("2700 MHz", 2700000),
+                NamedValue("2733 MHz", 2733000),
+                NamedValue("2766 MHz", 2766000),
+                NamedValue("2800 MHz", 2800000),
+                NamedValue("2833 MHz", 2833000),
+                NamedValue("2866 MHz", 2866000),
+                NamedValue("2900 MHz", 2900000),
+                NamedValue("2933 MHz", 2933000, "JEDEC."),
+                NamedValue("2966 MHz", 2966000),
+                NamedValue("3000 MHz", 3000000),
+                NamedValue("3033 MHz", 3033000),
+                NamedValue("3066 MHz", 3066000),
+                NamedValue("3100 MHz", 3100000),
+                NamedValue("3133 MHz", 3133000),
+                NamedValue("3166 MHz", 3166000),
+                NamedValue("3200 MHz", 3200000, "JEDEC."),
+                NamedValue("3233 MHz", 3233000, "High speedo needed!"),
+                NamedValue("3266 MHz", 3266000, "High speedo needed!"),
+                NamedValue("3300 MHz", 3300000, "High speedo needed!"),
+            };
+            addConfigToggle(HocClkConfigValue_AutoRAMCPUOverclock, "Auto CPU RAM OC");
+            addConfigButton(
+                HocClkConfigValue_AutoRamCpuCpuOCFreq,
+                "Auto CPU RAM OC CPU clock",
+                ValueRange(0, 0, 1, "", 1),
+                "CPU Clock",
+                &thresholdsDisabled,
+                {},
+                ClkOptionsRamOc,
+                false,
+                false
+            );
+            addConfigButton(
+                HocClkConfigValue_AutoRamCpuRamOCThreshold,
+                "Auto CPU RAM OC Threshold",
+                ValueRange(0, 0, 1, "", 1),
+                "RAM Clock",
+                &thresholdsDisabled,
+                {},
+                emcMaxClock,
+                false,
+                false
             );
         } else {
             addConfigTrackbar(KipConfigValue_eristaCpuUV, "CPU UV", ValueRange(0, 5, 1));
