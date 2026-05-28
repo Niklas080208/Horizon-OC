@@ -724,8 +724,8 @@ protected:
         ValueThresholds thresholdsDisabled(0, 0);
         if(IsMariko()) {
             addConfigToggle(HocClkConfigValue_MarikoMiddleFreqs, nullptr, true);
+            addConfigToggle(HocClkConfigValue_LiveCpuUv, nullptr);
         }
-        addConfigToggle(HocClkConfigValue_LiveCpuUv, nullptr);
         std::vector<NamedValue> gpuSchedMethodValues = {
             NamedValue("INI", GpuSchedulingOverrideMethod_Ini),
             NamedValue("NV Service", GpuSchedulingOverrideMethod_NvService),
@@ -2214,7 +2214,7 @@ protected:
             );
         }
         addConfigToggle(HocClkConfigValue_OverwriteBoostMode, nullptr);
-
+        addConfigToggle(HocClkConfigValue_LiveCpuUv, nullptr);
     }
 };
 

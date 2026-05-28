@@ -106,10 +106,6 @@ namespace board {
         if (GetSocType() == HocClkSocType_Erista) {
             cachedTune.tune0Low = *reinterpret_cast<u32 *>(cldvfs + CL_DVFS_TUNE0_0);
             cachedTune.tune1Low = *reinterpret_cast<u32 *>(cldvfs + CL_DVFS_TUNE1_0);
-        } else {
-            SetHz(HocClkModule_CPU, 1785000000);
-            cachedTune.tune0High = *reinterpret_cast<u32 *>(cldvfs + CL_DVFS_TUNE0_0);
-            ResetToStockCpu();
         }
     }
 
