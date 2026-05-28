@@ -316,6 +316,11 @@ namespace kip {
             // add marikoGpuBootVolt with default value of 800mV
             configValues.values[KipConfigValue_marikoGpuBootVolt] = 800;
 
+            // Raise min cpu vmin
+            if(configValues.values[KipConfigValue_eristaCpuVmin] < 750) {
+                configValues.values[KipConfigValue_eristaCpuVmin] = 750;
+            }
+
             // delete handheld TDP config entries
             config::DeleteKey(CONFIG_VAL_SECTION, "handheld_tdp");
             config::DeleteKey(CONFIG_VAL_SECTION, "tdp_limit");
