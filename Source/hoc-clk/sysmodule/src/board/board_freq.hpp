@@ -39,6 +39,7 @@
 namespace board {
 
     void SetHz(HocClkModule module, u32 hz);
+    void SetMarikoGm20bCutoff(u32 hz);
 
     u32 GetHz(HocClkModule module);
     u32 GetRealHz(HocClkModule module);

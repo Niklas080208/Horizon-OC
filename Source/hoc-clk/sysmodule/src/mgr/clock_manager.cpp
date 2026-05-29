@@ -182,52 +182,57 @@ namespace clockManager {
         std::uint32_t *hz = &gFreqTable[module].list[0];
         gFreqTable[module].count = 0;
 
-        if (module == HocClkModule_GPU && board::GetSocType() == HocClkSocType_Mariko && config::GetConfigValue(HocClkConfigValue_MarikoMiddleFreqs)) {
+        if (module == HocClkModule_GPU && board::GetSocType() == HocClkSocType_Mariko) {
             constexpr u32 kStep = 38400000;
             constexpr u32 kPcvStep = 76800000;
+            bool middleFreqs = config::GetConfigValue(HocClkConfigValue_MarikoMiddleFreqs) != 0;
 
-            u32 kMax = 0;
+            u32 kMax = ~0;
             for (u32 i = 0; i < count; i++) {
                 for (u32 j = 0; j < count; j++) {
-                    if (freqs[j] == freqs[i] + kStep) {
-                        kMax = freqs[j];
+                    if (freqs[j] + kStep == freqs[i]) {
+                        if (freqs[j] < kMax) kMax = freqs[j];
                         break;
                     }
                 }
             }
-            
-            if (kMax == 0) {
+
+            if (kMax == (u32)~0) {
+                kMax = 0;
                 for (u32 i = 0; i < count; i++) {
-                    if (freqs[i] > kMax)
-                        kMax = freqs[i];
+                    if (freqs[i] > kMax) kMax = freqs[i];
                 }
             }
 
-            for (u32 f = kPcvStep; f <= kMax && gFreqTable[module].count < HOCCLK_FREQ_LIST_MAX; f += kStep) {
-                if (f % kPcvStep != 0) {
-                    *hz = f;
-                    gFreqTable[module].count++;
-                    hz++;
-                } else {
-                    for (u32 i = 0; i < count; i++) {
-                        if (freqs[i] == f) {
-                            *hz = f;
-                            gFreqTable[module].count++;
-                            hz++;
-                            break;
+            board::SetMarikoGm20bCutoff(middleFreqs ? kMax : 0);
+
+            if (middleFreqs) {
+                for (u32 f = kPcvStep; f <= kMax && gFreqTable[module].count < HOCCLK_FREQ_LIST_MAX; f += kStep) {
+                    if (f % kPcvStep != 0) {
+                        *hz = f;
+                        gFreqTable[module].count++;
+                        hz++;
+                    } else {
+                        for (u32 i = 0; i < count; i++) {
+                            if (freqs[i] == f) {
+                                *hz = f;
+                                gFreqTable[module].count++;
+                                hz++;
+                                break;
+                            }
                         }
                     }
                 }
-            }
 
-            for (u32 i = 0; i < count && gFreqTable[module].count < HOCCLK_FREQ_LIST_MAX; i++) {
-                if (freqs[i] > kMax && IsAssignableHz(module, freqs[i])) {
-                    *hz = freqs[i];
-                    gFreqTable[module].count++;
-                    hz++;
+                for (u32 i = 0; i < count && gFreqTable[module].count < HOCCLK_FREQ_LIST_MAX; i++) {
+                    if (freqs[i] > kMax && IsAssignableHz(module, freqs[i])) {
+                        *hz = freqs[i];
+                        gFreqTable[module].count++;
+                        hz++;
+                    }
                 }
+                return;
             }
-            return;
         }
 
         for (std::uint32_t i = 0; i < count; i++) {

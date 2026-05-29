@@ -43,8 +43,12 @@
 #include "../soc/gm20b.hpp"
 #include "../file/config.hpp"
 namespace board {
-    #define MIDDLE_FREQ_TABLE_START_POINT 1228800000
     static u32 currentInjectedHz = 0;
+    static u32 gMarikoGm20bCutoff = 1228800000;
+
+    void SetMarikoGm20bCutoff(u32 hz) {
+        gMarikoGm20bCutoff = hz;
+    }
     PcvModule GetPcvModule(HocClkModule hocclkModule) {
         switch (hocclkModule) {
             case HocClkModule_CPU:
@@ -97,7 +101,7 @@ namespace board {
             return;
         }
 
-        bool useGm20b = (module == HocClkModule_GPU) && (GetSocType() == HocClkSocType_Mariko) && (hz % 38400000 == 0) && (hz % 76800000 != 0) && hz < MIDDLE_FREQ_TABLE_START_POINT;
+        bool useGm20b = (module == HocClkModule_GPU) && (GetSocType() == HocClkSocType_Mariko) && (hz % 38400000 == 0) && (hz % 76800000 != 0) && hz < gMarikoGm20bCutoff;
 
         u32 pcvHz = useGm20b ? ((hz + 76800000 - 1) / 76800000) * 76800000 : hz;
 
