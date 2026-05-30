@@ -79,57 +79,58 @@ namespace clockManager {
             if (module == HocClkModule_GPU) {
                 if (profile < HocClkProfile_HandheldCharging) {
                     switch (board::GetSocType()) {
-                    case HocClkSocType_Erista:
-                        return 460800000;
-                    case HocClkSocType_Mariko:
-                        if(board::GetConsoleType() == HocClkConsoleType_Hoag) {
-                            switch (config::GetConfigValue(KipConfigValue_marikoGpuUV)) {
-                                case 0 ... 2:
-                                    return 614400000;
-                                case 3 ... 4:
-                                    return 768000000;
-                                default:
-                                    return 614400000;
+                        case HocClkSocType_Erista:
+                            return 460800000;
+                        case HocClkSocType_Mariko:
+                            if(board::GetConsoleType() == HocClkConsoleType_Hoag) {
+                                switch (config::GetConfigValue(KipConfigValue_marikoGpuUV)) {
+                                    case 0 ... 2:
+                                        return 614400000;
+                                    case 3 ... 4:
+                                        return 768000000;
+                                    default:
+                                        return 614400000;
+                                }
+                            } else {
+                                switch (config::GetConfigValue(KipConfigValue_marikoGpuUV)) {
+                                    case 0:
+                                        return 614400000;
+                                    case 1:
+                                        return 691200000;
+                                    case 2:
+                                        return 768000000;
+                                    case 3:
+                                        return 844800000;
+                                    case 4:
+                                        return 921600000;
+                                    default:
+                                        return 614400000;
+                                }
                             }
-                        } else {
-                            switch (config::GetConfigValue(KipConfigValue_marikoGpuUV)) {
-                                case 0:
-                                    return 614400000;
-                                case 1:
-                                    return 691200000;
-                                case 2:
-                                    return 768000000;
-                                case 3:
-                                    return 844800000;
-                                case 4:
-                                    return 921600000;
-                                default:
-                                    return 614400000;
-                            }
-                        }
-                    default:
-                        return 460800000;
+                        default:
+                            return 460800000;
+                    }
                 } else if (profile <= HocClkProfile_HandheldChargingUSB) {
                     switch (board::GetSocType()) {
-                    case HocClkSocType_Erista:
-                        return 768000000;
-                    case HocClkSocType_Mariko:
-                        switch (config::GetConfigValue(KipConfigValue_marikoGpuUV)) {
-                            case 0:
-                                return 844800000;
-                            case 1:
-                                return 921600000;
-                            case 2:
-                                return 998400000;
-                            case 3:
-                                return 1075200000;
-                            case 4:
-                                return 1152000000;
-                            default:
-                                return 844800000;
-                        }
-                    default:
-                        return 768000000;
+                        case HocClkSocType_Erista:
+                            return 768000000;
+                        case HocClkSocType_Mariko:
+                            switch (config::GetConfigValue(KipConfigValue_marikoGpuUV)) {
+                                case 0:
+                                    return 844800000;
+                                case 1:
+                                    return 921600000;
+                                case 2:
+                                    return 998400000;
+                                case 3:
+                                    return 1075200000;
+                                case 4:
+                                    return 1152000000;
+                                default:
+                                    return 844800000;
+                            }
+                        default:
+                            return 768000000;
                     }
                 }
             } else if (module == HocClkModule_CPU) {
