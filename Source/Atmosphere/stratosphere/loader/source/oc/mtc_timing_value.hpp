@@ -94,11 +94,19 @@ namespace ams::ldr::hoc {
         inline u32 tWTPDEN;
         inline u32 tW2R;
 
+        inline u32 wdv;
+        inline u32 wsv;
+        inline u32 wev;
+
+        inline u32 obdly;
+
         inline u32 pdex2rw;
 
         inline u32 tCLKSTOP;
 
         inline double pdex2mrr;
+
+        inline u8 mrw2;
     }
 
     namespace pcv::mariko {

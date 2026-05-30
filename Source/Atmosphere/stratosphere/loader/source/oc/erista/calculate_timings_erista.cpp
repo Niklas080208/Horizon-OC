@@ -82,11 +82,42 @@ namespace ams::ldr::hoc::pcv::erista {
         }
     }
 
+    void CalculateMrw2() {
+        static const u8 rlMapDBI[8] = {
+            6, 12, 16, 22, 28, 32, 36, 40
+        };
+
+        static const u8 wlMapSetA[8] = {
+            4, 6, 8, 10, 12, 14, 16, 18
+        };
+
+        u32 rlIndex = 0;
+        u32 wlIndex = 0;
+
+        for (u32 i = 0; i < std::size(rlMapDBI); ++i) {
+            if (rlMapDBI[i] == 32) {
+                rlIndex = i;
+                break;
+            }
+        }
+
+        for (u32 i = 0; i < std::size(wlMapSetA); ++i) {
+            if (wlMapSetA[i] == WL) {
+                wlIndex = i;
+                break;
+            }
+        }
+
+        /* DBI is always enabled. */
+        mrw2 = static_cast<u8>(((rlIndex & 0x7) | ((wlIndex & 0x7) << 3) | ((0 & 0x1) << 6)));
+    }
+
     void CalculateTimings(double tCK_avg, u32 freq) {
         RL = RL_1331;
         WL = WL_1331;
 
         HandleLatency(freq);
+        CalculateMrw2();
 
         tR2P = CEIL((RL * 0.426) - 2.0);
         tR2W = FLOOR(FLOOR((5.0 / tCK_avg) + ((FLOOR(48.0 / WL) - 0.478) * 3.0)) / 1.501) + RL - (C.t6_tRTW * 3) + finetRTW;
@@ -94,6 +125,14 @@ namespace ams::ldr::hoc::pcv::erista {
         tW2P    = (CEIL(WL * 1.7303) * 2) - 5;
         tWTPDEN = CEIL(((1.803 / tCK_avg) + MAX(RL + (2.694 / tCK_avg), static_cast<double>(tW2P))) + (BL / 2));
         tW2R    = FLOOR(MAX((5.020 / tCK_avg) + 1.130, WL - MAX(-CEIL(0.258 * (WL - RL)), 1.964)) * 1.964) + WL - CEIL(tWTR / tCK_avg) + finetWTR;
+
+        wdv = WL;
+        wsv = WL - 2;
+        wev = 0xA + (WL - 14);
+
+        u32 obdlyHigh = 3 / FLOOR(MIN(static_cast<double>(2), tCK_avg * (WL - 7)));
+        u32 obdlyLow  = MAX(WL - FLOOR((126.0 / CEIL(tCK_avg + 8.601))), 0.0);
+        obdly         = PACK_U32_NIBBLE_HIGH_BYTE_LOW(obdlyHigh, obdlyLow);
 
         pdex2rw  = CEIL((CEIL(12.335 - tCK_avg) + (7.430 / tCK_avg) - CEIL(tCK_avg * 11.361)));
         tCLKSTOP = FLOOR(MIN(8.488 / tCK_avg, 23.0)) + 8.0;
