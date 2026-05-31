@@ -2228,9 +2228,10 @@ protected:
                 false,
                 true
             );
+            addConfigToggle(HocClkConfigValue_LiveCpuUv, nullptr);
+
         }
         addConfigToggle(HocClkConfigValue_OverwriteBoostMode, nullptr);
-        addConfigToggle(HocClkConfigValue_LiveCpuUv, nullptr);
     }
 };
 
