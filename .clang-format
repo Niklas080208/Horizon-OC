@@ -38,8 +38,8 @@ AllowShortBlocksOnASingleLine: Always
 # to always be on separate lines, following K&R convention
 AllowShortFunctionsOnASingleLine: None
 
-IndentCaseLabels: false
-SpaceAfterCStyleCast: true
+IndentCaseLabels: true
+SpaceAfterCStyleCast: false
 ColumnLimit: 150
 MaxEmptyLinesToKeep: 1
 Cpp11BracedListStyle: false
