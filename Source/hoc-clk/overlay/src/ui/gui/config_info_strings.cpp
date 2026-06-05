@@ -479,7 +479,7 @@ std::vector<std::string> ConfigInfoStrings(HocClkConfigValue val, bool isMariko,
                 " - HiOPT: L4T Custom HiOPT table, HOC Default",
                 " - HiOPT - 15mV: L4T Custom HiOPT table with a 15mV offset",
                 " - High UV: The highest undervolt table",
-                "Default: No Undervolt"
+                "Default: HiOPT"
             };
 
         case KipConfigValue_marikoGpuVmin:
