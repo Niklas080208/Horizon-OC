@@ -157,6 +157,19 @@ void Sidebar::addItem(std::string label, GenericEvent::Callback focusCallback)
     this->contentBox->addView(item);
 }
 
+void Sidebar::addHeader(std::string label)
+{
+    Label* header = new Label();
+    header->setText(label);
+    header->setFontSize(15.0f);
+    header->setTextColor(nvgRGB(120, 130, 140));
+    header->setMarginTop(18.0f);
+    header->setMarginBottom(4.0f);
+    header->setMarginLeft(12.0f);
+
+    this->contentBox->addView(header);
+}
+
 void Sidebar::addSeparator()
 {
     this->contentBox->addView(new SidebarSeparator());

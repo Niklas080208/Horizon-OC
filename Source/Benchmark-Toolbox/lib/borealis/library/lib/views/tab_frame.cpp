@@ -75,6 +75,11 @@ void TabFrame::addTab(std::string label, TabViewCreator creator)
     });
 }
 
+void TabFrame::addHeader(std::string label)
+{
+    this->sidebar->addHeader(label);
+}
+
 void TabFrame::addSeparator()
 {
     this->sidebar->addSeparator();

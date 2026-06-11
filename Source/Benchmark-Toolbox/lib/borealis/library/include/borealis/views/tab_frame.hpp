@@ -37,6 +37,7 @@ class TabFrame : public AppletFrame
     void handleXMLElement(tinyxml2::XMLElement* element) override;
 
     void addTab(std::string label, TabViewCreator creator);
+    void addHeader(std::string label);
     void addSeparator();
 
     static View* create();

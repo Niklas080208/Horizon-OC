@@ -85,6 +85,11 @@ class Sidebar : public ScrollingFrame
     void addItem(std::string label, GenericEvent::Callback focusCallback);
 
     /**
+     * Adds a non-focusable section header to this sidebar.
+     */
+    void addHeader(std::string label);
+
+    /**
      * Adds a separator to this sidebar.
      */
     void addSeparator();

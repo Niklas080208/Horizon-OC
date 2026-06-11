@@ -889,18 +889,23 @@ class MainActivity : public brls::Activity {
         tab->setTitle("Benchmark Toolbox");
         tab->setIconFromRes("img/logo.png");
         tab->addTab("System Info", [] { return new SysInfoTab(); });
-        tab->addSeparator();
-        tab->addTab("Membench", [] { return new BenchTab(); });
-        tab->addTab("GPU Test", [] { return new StressTab(); });
-        tab->addTab("Memtester", [] { return new MemtesterTab(); });
+
+        tab->addHeader("CPU");
         tab->addTab("CPU Stress", [] { return new CpuStressTab(); });
-        tab->addSeparator();
+        tab->addTab("CPU Ray Trace", [] { return new FurmarkTab(4, "CPU Path Tracer"); });
+
+        tab->addHeader("GPU");
+        tab->addTab("GPU Test", [] { return new StressTab(); });
         tab->addTab("Furmark", [] { return new FurmarkTab(0, "FurMark for Switch (48 step)"); });
-        tab->addTab("Furmark RAM", [] { return new FurmarkTab(1, "FurMark with extra ram stress"); });
         tab->addTab("GPU Path Trace", [] { return new FurmarkTab(2, "GPU Path Tracer"); });
         tab->addTab("Black Hole", [] { return new FurmarkTab(3, "CPU+GPU black-hole."); });
-        tab->addTab("CPU Ray Trace", [] { return new FurmarkTab(4, "CPU Path Tracer"); });
+
+        tab->addHeader("RAM");
+        tab->addTab("Memtester", [] { return new MemtesterTab(); });
+        tab->addTab("Membench", [] { return new BenchTab(); });
+        tab->addTab("Furmark RAM", [] { return new FurmarkTab(1, "FurMark with extra ram stress"); });
         tab->addTab("CPU RAM", [] { return new FurmarkTab(5, "CPU RT with extra RAM stress"); });
+
         tab->addSeparator();
         tab->addTab("Credits", [] { return new CreditsTab(); });
         return tab;
