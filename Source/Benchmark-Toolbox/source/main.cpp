@@ -48,7 +48,7 @@ static brls::Label *makeRow(brls::Box *parent, const std::string &name) {
 }
 
 struct StatCells {
-    brls::Label *load = nullptr, *clock = nullptr, *volt = nullptr, *temp = nullptr;
+    brls::Label *load = nullptr, *clock = nullptr, *volt = nullptr, *vddq = nullptr, *temp = nullptr;
 };
 
 static brls::Label *statCell(brls::Box *row, float fs) {
@@ -81,11 +81,6 @@ static void fmtClock1(brls::Label *l, uint32_t hz) {
     std::snprintf(b, sizeof b, "%u.%u MHz", hz / 1000000u, (hz / 100000u) % 10u);
     l->setText(b);
 }
-static void fmtClock0(brls::Label *l, uint32_t hz) {
-    char b[32];
-    std::snprintf(b, sizeof b, "%u MHz", hz / 1000000u);
-    l->setText(b);
-}
 static void fmtVolt(brls::Label *l, uint32_t uv) {
     char b[32];
     std::snprintf(b, sizeof b, "%u mV", uv / 1000u);
@@ -109,7 +104,7 @@ class SysInfoTab : public brls::Box {
         this->addView(clk);
         cpuR = makeCompRow(this, "CPU");
         gpuR = makeCompRow(this, "GPU");
-        ramR = makeCompRow(this, "RAM");
+        ramR = makeRamRow(this);
 
         auto *sys = new brls::Header();
         sys->setTitle("System");
@@ -148,6 +143,26 @@ class SysInfoTab : public brls::Box {
         parent->addView(row);
         return c;
     }
+    static StatCells makeRamRow(brls::Box *parent) {
+        auto *row = new brls::Box(brls::Axis::ROW);
+        row->setMarginBottom(10.0f);
+        auto *n = new brls::Label();
+        n->setText("RAM");
+        n->setGrow(1.0f);
+        row->addView(n);
+        StatCells c;
+        c.load = statCell(row, 0);
+        statSep(row, 0);
+        c.clock = statCell(row, 0);
+        statSep(row, 0);
+        c.volt = statCell(row, 0);
+        statSep(row, 0);
+        c.vddq = statCell(row, 0);
+        statSep(row, 0);
+        c.temp = statCell(row, 0);
+        parent->addView(row);
+        return c;
+    }
     void setRow(StatCells &r, unsigned loadOrBw, bool isRam, uint32_t hz, uint32_t uv, int32_t mc) {
         fmtLoad(r.load, loadOrBw, isRam);
         fmtClock1(r.clock, hz);
@@ -171,10 +186,12 @@ class SysInfoTab : public brls::Box {
             setRow(cpuR, c.stable.partLoad[3] / 10, false, c.stable.freqs[0], c.stable.voltages[2], c.stable.temps[5]);
             setRow(gpuR, c.stable.partLoad[2] / 10, false, c.stable.freqs[1], c.stable.voltages[3], c.stable.temps[6]);
             setRow(ramR, c.stable.partLoad[6], true, c.stable.freqs[2], c.stable.voltages[1], c.stable.temps[7]);
+            fmtVolt(ramR.vddq, c.stable.voltages[4]);
         } else {
             naRow(cpuR);
             naRow(gpuR);
             naRow(ramR);
+            ramR.vddq->setText("-");
         }
     }
     StatCells cpuR, gpuR, ramR;
@@ -877,7 +894,7 @@ class AppFrame : public brls::TabFrame {
         else
             std::snprintf(b, sizeof b, "%s %u%%", name, loadOrBw);
         g.load->setText(b);
-        fmtClock0(g.clock, hz);
+        fmtClock1(g.clock, hz);
         fmtTemp(g.temp, mc);
     }
     void update() {
@@ -896,9 +913,9 @@ class AppFrame : public brls::TabFrame {
             grp[2].temp->setText("-");
             return;
         }
-        setGrp(grp[0], "CPU", c.stable.partLoad[3] / 10, false, c.stable.freqs[0], c.stable.temps[5]);
-        setGrp(grp[1], "GPU", c.stable.partLoad[2] / 10, false, c.stable.freqs[1], c.stable.temps[6]);
-        setGrp(grp[2], "RAM", c.stable.partLoad[6], true, c.stable.freqs[2], c.stable.temps[7]);
+        setGrp(grp[0], "CPU", c.stable.partLoad[3] / 10, false, c.stable.realFreqs[0], c.stable.temps[5]);
+        setGrp(grp[1], "GPU", c.stable.partLoad[2] / 10, false, c.stable.realFreqs[1], c.stable.temps[6]);
+        setGrp(grp[2], "RAM", c.stable.partLoad[6], true, c.stable.realFreqs[2], c.stable.temps[7]);
     }
     brls::Box *box = nullptr;
     StatCells grp[3];
