@@ -358,7 +358,7 @@ class StressTab : public brls::Box {
         this->addView(statusL);
 
         auto *h = new brls::Header();
-        h->setTitle("Live");
+        h->setTitle("Info");
         this->addView(h);
         gflops = makeRow(this, "GFLOPS");
         dispatches = makeRow(this, "Dispatches");
@@ -582,7 +582,7 @@ class MemtesterTab : public brls::Box {
         this->addView(bar);
 
         auto *h = new brls::Header();
-        h->setTitle("Live");
+        h->setTitle("Info");
         this->addView(h);
         rowA = makeRow(this, "Loops");
         rowB = makeRow(this, "Mismatches");
@@ -748,7 +748,7 @@ class CpuStressTab : public brls::Box {
         this->addView(statusL);
 
         auto *h = new brls::Header();
-        h->setTitle("Live");
+        h->setTitle("Info");
         this->addView(h);
         rowA = makeRow(this, "Iterations");
         rowB = makeRow(this, "Mismatches");
