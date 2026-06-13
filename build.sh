@@ -34,7 +34,7 @@ if [ "$EXT" -eq 1 ]; then
 fi
 
 if [ "$NO_EXO" -eq 1 ]; then
-    echo "No_EXO = 1"
+    echo "NO_EXO = 1"
 fi
 
 CORES="$(nproc --all)"
@@ -109,7 +109,7 @@ cp -v Horizon-OC-Monitor.ovl ../../dist/switch/.overlays/Horizon-OC-Monitor.ovl
 if [ "$EXT" -eq 1 ]; then
     cd ../
     echo
-    echo "*** Extensions enabled ***"
+    echo "*** Compiling extensions ***"
 
     HEKATE_DIR="hekate"
     HEKATE_URL="https://github.com/Horizon-OC/hekate.git"
@@ -127,7 +127,13 @@ if [ "$EXT" -eq 1 ]; then
     echo
 
     mkdir -p "$DIST_DIR/bootloader/sys/"
-    cp -v output/nyx.bin ../../dist/bootloader/sys/nyx.bin
+    cp -v output/nyx.bin "$ROOT_DIR"/dist/bootloader/sys/nyx.bin
+
+    cd "$ROOT_DIR"/Source/Benchmark-Toolbox
+    echo
+    echo "*** Compiling Benchmark-Toolbox ***"
+    make -j$CORES
+    cp -v Benchmark-Toolbox.nro "$DIST_DIR"/switch/Benchmark-Toolbox.nro
 fi
 
 echo
