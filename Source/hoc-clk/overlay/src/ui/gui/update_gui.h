@@ -52,8 +52,8 @@ private:
     };
 
     static constexpr PackageInfo kPackages[2] = {
-        {"HOC",     "https://github.com/Horizon-OC/Horizon-OC/releases/latest/download/dist.zip", "sdmc:/config/horizon-oc/dist.zip"},
-        {"HOC-EXT", "https://github.com/Horizon-OC/Horizon-OC/releases/latest/download/dist_ext.zip", "sdmc:/config/horizon-oc/dist_ext.zip"},
+        {"Horizon OC",     "https://github.com/Horizon-OC/Horizon-OC/releases/latest/download/dist.zip", "sdmc:/config/horizon-oc/dist.zip"},
+        {"Horizon OC + Extensions", "https://github.com/Horizon-OC/Horizon-OC/releases/latest/download/dist_ext.zip", "sdmc:/config/horizon-oc/dist_ext.zip"},
     };
 
     bool isBusy() const {
