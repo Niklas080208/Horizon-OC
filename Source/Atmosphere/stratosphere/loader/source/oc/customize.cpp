@@ -36,7 +36,7 @@ volatile CustomizeTable C = {
 .hpMode = DISABLED,
 
 .commonEmcMemVolt  = 1175000, /* LPDDR4(X) JEDEC Specification */
-.eristaEmcMaxClock = 1600000, /* Maximum HB-MGCH ram rating */
+.eristaEmcMaxClock = 1633000, /* Maximum HB-MGCH ram rating */
 
 /* Available: 66MHz step rate, 100MHz step rate, 133MHz step rate and jedec. */
 /* Jedec freqs are 1333MHz, 1600MHz, 1866MHz, 2133MHz, 2400MHz, 2666MHz, 2933MHz, 3200MHz. */
@@ -65,8 +65,14 @@ volatile CustomizeTable C = {
 
 /* Frequency where non low timings gets used. */
 .timingEmcTbreak = DISABLED,
-.low_t6_tRTW = 0,
-.low_t7_tWTR = 0,
+.low_t1_tRCD  = 0,
+.low_t2_tRP   = 0,
+.low_t3_tRAS  = 0,
+.low_t4_tRRD  = 0,
+.low_t5_tRFC  = 0,
+.low_t6_tRTW  = 0,
+.low_t7_tWTR  = 0,
+.low_t8_tREFI = 0,
 
 .readLatency = {
     /* 1333 */ 0,

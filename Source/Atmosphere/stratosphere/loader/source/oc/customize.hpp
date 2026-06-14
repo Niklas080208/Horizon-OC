@@ -20,8 +20,8 @@
 
 #pragma once
 
-#define CUST_REV 4
-#define KIP_VERSION 241
+#define CUST_REV 5
+#define KIP_VERSION 242
 
 #include "oc_common.hpp"
 #include "pcv/pcv_common.hpp"
@@ -89,8 +89,14 @@ struct CustomizeTable {
     u32 t2_tRP_cap;
 
     u32 timingEmcTbreak;
+    u32 low_t1_tRCD;
+    u32 low_t2_tRP;
+    u32 low_t3_tRAS;
+    u32 low_t4_tRRD;
+    u32 low_t5_tRFC;
     u32 low_t6_tRTW;
     u32 low_t7_tWTR;
+    u32 low_t8_tREFI;
 
     u32 readLatency[4];
     u32 writeLatency[4];

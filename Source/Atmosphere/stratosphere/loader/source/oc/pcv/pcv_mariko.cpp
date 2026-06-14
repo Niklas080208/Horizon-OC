@@ -375,12 +375,6 @@ namespace ams::ldr::hoc::pcv::mariko {
             WRITE_PARAM_ALL_REG(table, emc_cfg, 0xF3200000);
         }
 
-        u32 refresh_raw = 0xFFFF;
-        if (C.t8_tREFI != 6) {
-            refresh_raw = CEIL(tREFpb_values[C.t8_tREFI] / tCK_avg) - 0x40;
-            refresh_raw = MIN(refresh_raw, static_cast<u32>(0xFFFF));
-        }
-
         u32 trefbw = refresh_raw + 0x40;
         trefbw     = MIN(trefbw, static_cast<u32>(0x3FFF));
 

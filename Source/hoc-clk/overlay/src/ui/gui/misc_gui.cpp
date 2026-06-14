@@ -1316,8 +1316,14 @@ class RamTimingsSubmenuGui : public MiscGui {
 
             addConfigButton(KipConfigValue_timingEmcTbreak, "RAM-Timing tBreak", ValueRange(0, 1, 1, "", 1), "tBreak", &thresholdsDisabled, {},
                             timingTbreakFreqs, false, true);
+            addConfigTrackbar(KipConfigValue_low_t1_tRCD, "Low t1 tRCD", ValueRange(0, 7, 1));
+            addConfigTrackbar(KipConfigValue_low_t2_tRP, "Low t2 tRP", ValueRange(0, 7, 1));
+            addConfigTrackbar(KipConfigValue_low_t3_tRAS, "Low t3 tRAS", ValueRange(0, 9, 1));
+            addConfigTrackbar(KipConfigValue_low_t4_tRRD, "Low t4 tRRD", ValueRange(0, 6, 1));
+            addConfigTrackbar(KipConfigValue_low_t5_tRFC, "Low t5 tRFC", ValueRange(0, 10, 1));
             addConfigTrackbar(KipConfigValue_low_t6_tRTW, "Low t6 tRTW", ValueRange(0, 9, 1));
             addConfigTrackbar(KipConfigValue_low_t7_tWTR, "Low t7 tWTR", ValueRange(0, 9, 1));
+            addConfigTrackbar(KipConfigValue_low_t8_tREFI, "Low t8 tREFI", ValueRange(0, 6, 1));
             {
                 auto *spacer = new tsl::elm::CustomDrawer([](tsl::gfx::Renderer *, s32, s32, s32, s32) {});
                 spacer->setBoundaries(0, 0, tsl::cfg::FramebufferWidth, 8);

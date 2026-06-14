@@ -99,8 +99,14 @@ typedef enum {
     KipConfigValue_t8_tREFI,
 
     KipConfigValue_timingEmcTbreak,
+    KipConfigValue_low_t1_tRCD,
+    KipConfigValue_low_t2_tRP,
+    KipConfigValue_low_t3_tRAS,
+    KipConfigValue_low_t4_tRRD,
+    KipConfigValue_low_t5_tRFC,
     KipConfigValue_low_t6_tRTW,
     KipConfigValue_low_t7_tWTR,
+    KipConfigValue_low_t8_tREFI,
 
     KipConfigValue_t2_tRP_cap,
 
@@ -362,10 +368,23 @@ static inline const char* hocclkFormatConfigValue(HocClkConfigValue val, bool pr
 
         case KipConfigValue_timingEmcTbreak:
             return pretty ? "Timing Emc Tbreak" : "timingEmcTbreak";
+
+        case KipConfigValue_low_t1_tRCD:
+            return pretty ? "Low T1 - tRCD" : "low_t1_tRCD";
+        case KipConfigValue_low_t2_tRP:
+            return pretty ? "Low T2 - tRP" : "low_t2_tRP";
+        case KipConfigValue_low_t3_tRAS:
+            return pretty ? "Low T3 - tRAS" : "low_t3_tRAS";
+        case KipConfigValue_low_t4_tRRD:
+            return pretty ? "Low T4 - tRRD" : "low_t4_tRRD";
+        case KipConfigValue_low_t5_tRFC:
+            return pretty ? "Low t5 - tRFC" : "low_t5_tRFC";
         case KipConfigValue_low_t6_tRTW:
             return pretty ? "Low T6 - tRTW" : "low_t6_tRTW";
         case KipConfigValue_low_t7_tWTR:
             return pretty ? "Low T7 - tWTR" : "low_t7_tWTR";
+        case KipConfigValue_low_t8_tREFI:
+            return pretty ? "Low T8 - tREFI" : "low_t7_tREFI";
 
         case KipConfigValue_t2_tRP_cap:
             return pretty ? "t2 - trp 1333WL Cap" : "t2_tRP_cap";
@@ -632,8 +651,14 @@ static inline uint64_t hocclkValidConfigValue(HocClkConfigValue val, uint64_t in
         case KipConfigValue_t7_tWTR:
         case KipConfigValue_t8_tREFI:
         case KipConfigValue_timingEmcTbreak:
+        case KipConfigValue_low_t1_tRCD:
+        case KipConfigValue_low_t2_tRP:
+        case KipConfigValue_low_t3_tRAS:
+        case KipConfigValue_low_t4_tRRD:
+        case KipConfigValue_low_t5_tRFC:
         case KipConfigValue_low_t6_tRTW:
         case KipConfigValue_low_t7_tWTR:
+        case KipConfigValue_low_t8_tREFI:
         case KipConfigValue_t2_tRP_cap:
         case KipConfigValue_read_latency_1333:
         case KipConfigValue_read_latency_1600:

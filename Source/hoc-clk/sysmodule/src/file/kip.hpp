@@ -57,8 +57,14 @@ namespace kip {
         u32 t2_tRP_cap;
 
         u32 timingEmcTbreak;
+        u32 low_t1_tRCD;
+        u32 low_t2_tRP;
+        u32 low_t3_tRAS;
+        u32 low_t4_tRRD;
+        u32 low_t5_tRFC;
         u32 low_t6_tRTW;
         u32 low_t7_tWTR;
+        u32 low_t8_tREFI;
 
         /* These latencies are arrays in loader, but it's easier to handle it this way in the configurator. */
         u32 readLatency1333, readLatency1600, readLatency1866, readLatency2133;
@@ -270,12 +276,24 @@ namespace kip {
     static inline bool cust_set_timing_emc_tbreak(const char *p, u32 v) {
         CUST_WRITE_FIELD(p, timingEmcTbreak, v);
     }
+
+    static inline bool cust_set_low_tRCD(const char *p, u32 v) { CUST_WRITE_FIELD(p, low_t1_tRCD, v); }
+    static inline bool cust_set_low_tRP(const char *p, u32 v) { CUST_WRITE_FIELD(p, low_t2_tRP, v); }
+    static inline bool cust_set_low_tRAS(const char *p, u32 v) { CUST_WRITE_FIELD(p, low_t3_tRAS, v); }
+    static inline bool cust_set_low_tRRD(const char *p, u32 v) { CUST_WRITE_FIELD(p, low_t4_tRRD, v); }
+    static inline bool cust_set_low_tRFC(const char *p, u32 v) { CUST_WRITE_FIELD(p, low_t5_tRFC, v); }
+
     static inline bool cust_set_low_tRTW(const char *p, u32 v) {
         CUST_WRITE_FIELD(p, low_t6_tRTW, v);
     }
     static inline bool cust_set_low_tWTR(const char *p, u32 v) {
         CUST_WRITE_FIELD(p, low_t7_tWTR, v);
     }
+
+    static inline bool cust_set_low_tREFI(const char *p, u32 v) {
+        CUST_WRITE_FIELD(p, low_t8_tREFI, v);
+    }
+
     static inline bool cust_set_tRTW_fine_tune(const char *p, u32 v) {
         CUST_WRITE_FIELD(p, t6_tRTW_fine_tune, v);
     }
@@ -476,11 +494,21 @@ namespace kip {
     static inline u32 cust_get_timing_emc_tbreak(const CustomizeTable *t) {
         return CUST_GET_FIELD(t, timingEmcTbreak);
     }
-    static inline u32 cust_get_low_t6_tRTW(const CustomizeTable *t) {
+
+    static inline u32 cust_get_low_tRCD(const CustomizeTable *t) { return CUST_GET_FIELD(t, low_t1_tRCD); }
+    static inline u32 cust_get_low_tRP(const CustomizeTable *t) { return CUST_GET_FIELD(t, low_t2_tRP); }
+    static inline u32 cust_get_low_tRAS(const CustomizeTable *t) { return CUST_GET_FIELD(t, low_t3_tRAS); }
+    static inline u32 cust_get_low_tRRD(const CustomizeTable *t) { return CUST_GET_FIELD(t, low_t4_tRRD); }
+    static inline u32 cust_get_low_tRFC(const CustomizeTable *t) { return CUST_GET_FIELD(t, low_t5_tRFC); }
+
+    static inline u32 cust_get_low_tRTW(const CustomizeTable *t) {
         return CUST_GET_FIELD(t, low_t6_tRTW);
     }
-    static inline u32 cust_get_low_t7_tWTR(const CustomizeTable *t) {
+    static inline u32 cust_get_low_tWTR(const CustomizeTable *t) {
         return CUST_GET_FIELD(t, low_t7_tWTR);
+    }
+    static inline u32 cust_get_low_tREFI(const CustomizeTable *t) {
+        return CUST_GET_FIELD(t, low_t8_tREFI);
     }
     static inline u32 cust_get_tRTW_fine_tune(const CustomizeTable *t) {
         return CUST_GET_FIELD(t, t6_tRTW_fine_tune);
