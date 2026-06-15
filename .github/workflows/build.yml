@@ -109,6 +109,7 @@ jobs:
 
           ROOT_DIR="$GITHUB_WORKSPACE/Source/hoc-clk"
           DIST_DIR="$ROOT_DIR/dist"
+          echo "DIST_DIR="$ROOT_DIR/dist"" >> $GITHUB_ENV
           
           mkdir -p "$DIST_DIR"
 
@@ -182,5 +183,5 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: horizon-oc-zeus-dist
-          path: dist/
-          compression-level: 3
+          path: $DIST_DIR
+          compression-level: 6
