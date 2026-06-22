@@ -51,13 +51,13 @@
     "Experimental Settings": "实验性设置",
     "Experimental": "实验性功能",
 
-    " Settings marked in blue": "蓝色标注的设置可立即生效，",
+    " Settings marked in blue": "蓝色的设置更改后可立即生效，",
     "don't require a reboot to apply!": "无需重启主机。",
     "You can also press  to show": "按可以查看每项设置的",
     "information about each setting.": "详细说明(英文)。",
 
     " Experimental Settings are incomplete ": "实验性设置尚未正式完成，",
-    "and may not work correctly or at all!": "可能导致崩溃死机等意外后果！",
+    "and may not work correctly or at all!": "可能导致死机崩溃等意外后果！",
     "Here be dragons!": "风险自负！",
 
     "RAM Voltage Display Mode": "内存电压显示模式",
@@ -145,7 +145,7 @@
     "Auto CPU RAM OC": "高内存频率自动提频CPU",
     "Auto CPU RAM OC CPU clock": "自动提频CPU频率",
     "Auto CPU RAM OC Threshold": "自动提频触发阈值",
-    "Overwrite Boost Mode": "接管CPU加速模式",
+    "Overwrite Boost Mode": "接管系统CPU调度",
     "CPU UV": "CPU降压",
     "CPU Unlock": "CPU解锁",
     "CPU VMIN": "CPU最低电压",
