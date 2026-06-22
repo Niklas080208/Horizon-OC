@@ -132,6 +132,14 @@
     "Read Latency": "读取延迟",
     "Write Latency": "写入延迟",
 	"Latency Graph": "延迟可视化图",
+	"Latency Max": "延迟最高频率"
+	"1333 Latency Max": "1333延迟最高频率",
+	"1600 Latency Max": "1600延迟最高频率",
+	"1866 Latency Max": "1866延迟最高频率",
+	"2133 Latency Max": "2133延迟最高频率",
+	"Read": "读取",
+	"Write": "写入",
+	"Same": "相同"
     "High speedo needed!": "需要高体质！",
     "3333MHz (Needs extreme Speedo/PLL)": "3333MHz (需要极高体质)",
     "3366MHz (Needs extreme Speedo/PLL)": "3366MHz (需要极高体质)",
