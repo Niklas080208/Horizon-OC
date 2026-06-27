@@ -172,7 +172,7 @@ namespace ams::ldr::hoc::pcv {
 
     void WriteKipLoadToIram() {
         const u32 hocMagic                   = 0x686F634D;
-        constexpr uintptr_t LoadMagicAddress = 0x4003DC00 ; /* Should be a pretty safe address. */
+        constexpr uintptr_t LoadMagicAddress = 0x4003DC00; /* Should be a pretty safe address. */
         R_DISCARD(SmcCopyToIram(LoadMagicAddress, &hocMagic, sizeof(hocMagic)));
     }
 
