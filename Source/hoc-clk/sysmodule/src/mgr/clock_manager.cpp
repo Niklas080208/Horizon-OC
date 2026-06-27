@@ -305,23 +305,6 @@ namespace clockManager {
             return true;
         }
 
-        if (config::GetConfigValue(HocClkConfigValue_AutoRAMCPUOverclock) && !isBoost && !governor::isCpuGovernorEnabled &&
-            (board::GetSocType() == HocClkSocType_Mariko)) {
-            u32 ramHz = gContext.freqs[HocClkModule_MEM];
-            u32 threshold = (u32)config::GetConfigValue(HocClkConfigValue_AutoRamCpuRamOCThreshold) * 1000;
-            if (ramHz >= threshold) {
-                u32 cpuOverrideHz = (u32)config::GetConfigValue(HocClkConfigValue_AutoRamCpuCpuOCFreq) * 1000;
-                if (cpuOverrideHz <= gContext.freqs[HocClkModule_CPU])
-                    return false;
-                u32 maxHz = GetMaxAllowedHz(HocClkModule_CPU, gContext.profile);
-                u32 nearestHz = GetNearestHz(HocClkModule_CPU, cpuOverrideHz, maxHz);
-                board::SetHz(HocClkModule_CPU, nearestHz);
-                gContext.freqs[HocClkModule_CPU] = nearestHz;
-                if (HocClkModule_CPU < HocClkModuleStable_EnumMax)
-                    gContext.stable.freqs[HocClkModule_CPU] = nearestHz;
-                return true;
-            }
-        }
         return false;
     }
     void HandleMiscFeatures() {
@@ -450,6 +433,16 @@ namespace clockManager {
             board::SetHz(HocClkModule_CPU, board::GetHz(HocClkModule_CPU));
             prepareBoostExit = false;
         }
+
+        u32 ramTargetHz = gContext.overrideFreqs[HocClkModule_MEM];
+        if (!ramTargetHz) {
+            ramTargetHz = config::GetAutoClockHz(gContext.applicationId, HocClkModule_MEM, gContext.profile, false);
+            if (!ramTargetHz)
+                ramTargetHz = config::GetAutoClockHz(HOCCLK_GLOBAL_PROFILE_TID, HocClkModule_MEM, gContext.profile, false);
+        }
+        if (ramTargetHz)
+            ramTargetHz = GetNearestHz(HocClkModule_MEM, ramTargetHz, GetMaxAllowedHz(HocClkModule_MEM, gContext.profile));
+
         bool returnRaw = false;  // Return a value scaled to MHz instead of raw value
         for (unsigned int module = 0; module < HocClkModule_EnumMax; module++) {
             u32 oldHz = board::GetHz((HocClkModule)module);  // Get Old hz (used primarily for DVFS Logic)
@@ -498,9 +491,20 @@ namespace clockManager {
             if (noGPU && module == HocClkModule_GPU)
                 continue;
 
-            if (targetHz) {
+            u32 autoCpuOcHz = 0;
+            if (module == HocClkModule_CPU && config::GetConfigValue(HocClkConfigValue_AutoRAMCPUOverclock) && !isBoost &&
+                !governor::isCpuGovernorEnabled && (board::GetSocType() == HocClkSocType_Mariko)) {
+                u32 threshold = (u32)config::GetConfigValue(HocClkConfigValue_AutoRamCpuRamOCThreshold) * 1000;
+                if (ramTargetHz >= threshold)
+                    autoCpuOcHz = (u32)config::GetConfigValue(HocClkConfigValue_AutoRamCpuCpuOCFreq) * 1000;
+            }
+
+            if (targetHz || autoCpuOcHz) {
                 maxHz = GetMaxAllowedHz((HocClkModule)module, gContext.profile);
-                nearestHz = GetNearestHz((HocClkModule)module, targetHz, maxHz);
+                nearestHz = targetHz ? GetNearestHz((HocClkModule)module, targetHz, maxHz) : 0;
+
+                if (autoCpuOcHz > nearestHz)
+                    nearestHz = GetNearestHz(HocClkModule_CPU, autoCpuOcHz, maxHz);
 
                 if (nearestHz != gContext.freqs[module]) {
                     fileUtils::LogLine("[mgr] %s clock set : %u.%u MHz (target = %u.%u MHz)", board::GetModuleName((HocClkModule)module, true),
@@ -511,7 +515,6 @@ namespace clockManager {
                     if (module == HocClkModule_MEM && targetHz > oldHz && config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
                         ApplyGpuDvfs(targetHz);
                     }
-
                     board::SetHz((HocClkModule)module, nearestHz);
                     gContext.freqs[module] = nearestHz;
 
