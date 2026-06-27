@@ -24,6 +24,7 @@
 
 // tsl::elm::ListItem* custRevItem = NULL;
 tsl::elm::ListItem* kipVersionItem = NULL;
+tsl::elm::ListItem* kipLoadedItem = NULL;
 tsl::elm::ListItem* SpeedoItem = NULL;
 tsl::elm::ListItem* IddqItem = NULL;
 tsl::elm::ListItem* DramModule = NULL;
@@ -155,6 +156,9 @@ void AboutGui::listUI()
     kipVersionItem = new tsl::elm::ListItem("KIP version:");
     this->listElement->addItem(kipVersionItem);
 
+    kipLoadedItem = new tsl::elm::ListItem("KIP status:");
+    this->listElement->addItem(kipLoadedItem);
+
     if(!IsHoag()) {
         sysdockStatusItem =
             new tsl::elm::ListItem("sys-dock status:");
@@ -246,6 +250,8 @@ void AboutGui::refresh()
     // custRevItem->setValue(std::to_string(this->context->custRev));
 
     kipVersionItem->setValue(std::to_string((this->context->kipVersion / 100) % 10) + "." + std::to_string((this->context->kipVersion / 10) % 10) + "." + std::to_string( this->context->kipVersion % 10) + " (Cust Rev " + std::to_string(this->context->custRev) + ")");
+    kipLoadedItem->setValue(this->context->isKipLoaded ? "Loaded" : "Not Loaded");
+
     if(!IsHoag())
         sysdockStatusItem->setValue(this->context->isSysDockInstalled ? "Installed" : "Not Installed");
 

@@ -19,8 +19,8 @@
 #include "../i2c/i2cDrv.h"
 #include "../mgr/clock_manager.hpp"
 #include "file_utils.hpp"
+#include "../mapping/mem_map.hpp"
 #include "kip.hpp"
-
 
 namespace kip {
 
@@ -172,6 +172,24 @@ namespace kip {
         }
     }
 
+    bool IsKipLoaded() {
+        constexpr u32 ExpectedMagic = 0x686F634D;
+        constexpr uintptr_t LoadMagicAddress = 0x4003DC00;
+        u32 iramValue = {};
+
+        SmcCopyFromIram(&iramValue, LoadMagicAddress, sizeof(iramValue));
+
+        if (iramValue == ExpectedMagic) {
+            iramValue = 0;
+            SmcCopyToIram(LoadMagicAddress, &iramValue, sizeof(iramValue));
+            return true;
+        }
+
+        notification::writeNotification("Kip is not loaded!");
+        fileUtils::LogLine("Kip was not loaded!");
+        return false;
+    }
+
     // I know this is very hacky, but the config system in the sysmodule doesn't really support writing
 
     void GetKipData() {
@@ -231,6 +249,7 @@ namespace kip {
             return;
         }
 
+        clockManager::gContext.isKipLoaded = IsKipLoaded();
         clockManager::gContext.kipVersion = kipVersion;
         configValues.values[KipConfigValue_custRev] = cust_get_cust_rev(&table);
         configValues.values[KipConfigValue_KipVersion] = cust_get_kip_version(&table);  // Run this after the check so we can do migration process
@@ -350,4 +369,5 @@ namespace kip {
         }
         config::SetConfigValues(&configValues, true);
     }
+
 }  // namespace kip
