@@ -2241,7 +2241,7 @@ class GpuCustomTableSubmenuGui : public MiscGui {
 
             tsl::elm::CustomDrawer *warningText = new tsl::elm::CustomDrawer([](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
                 renderer->drawString("\uE150 Setting GPU Clocks past", false, x + 20, y + 30, 18, tsl::style::color::ColorText);
-                renderer->drawString("1228MHz without a proper undervolt", false, x + 20, y + 50, 18, tsl::style::color::ColorText);
+                renderer->drawString("1305MHz without a proper undervolt", false, x + 20, y + 50, 18, tsl::style::color::ColorText);
                 renderer->drawString("can cause degradation or damage", false, x + 20, y + 70, 18, tsl::style::color::ColorText);
                 renderer->drawString("to your console!", false, x + 20, y + 90, 18, tsl::style::color::ColorText);
                 renderer->drawString("Proceed at your own risk!", false, x + 20, y + 110, 18, tsl::style::color::ColorText);
