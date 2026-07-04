@@ -48,7 +48,7 @@ namespace board {
     u32 CalculateTbreak(u32 table);
     u32 GetVoltage(HocClkVoltage voltage);
     void CacheGpuVoltTable();
-    void PcvHijackGpuVolts(u32 vmin);
+    void PcvHijackGpuVolts(u32 vmin, bool forceOverwrite);
     u32 GetMinimumGpuVmin(u32 freqMhz, u32 bracket);
 
 }  // namespace board

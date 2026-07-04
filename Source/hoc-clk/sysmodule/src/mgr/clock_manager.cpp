@@ -332,6 +332,28 @@ namespace clockManager {
         }
     }
 
+    u32 ClampGpuVoltage(u32 voltage) {
+        constexpr u32 MaxGpuVoltage = 960;
+        return std::min(voltage, MaxGpuVoltage);
+    }
+
+    u32 GetCurrentNearestGpuFrequency() {
+        u32 gpuHz = board::GetHz(HocClkModule_GPU);
+        u32 maxHz = GetMaxAllowedHz(HocClkModule_GPU, gContext.profile);
+        return GetNearestHz(HocClkModule_GPU, gpuHz, maxHz);
+    }
+
+    void ApplyGpuVoltageRequest(u32 voltage) {
+        fileUtils::LogLine("Unclamped voltage request: %u", voltage);
+        voltage = ClampGpuVoltage(voltage);
+        fileUtils::LogLine("Actual voltage: %u", voltage);
+
+        board::PcvHijackGpuVolts(voltage, true);
+
+        /* Update the voltage using the currently nearest valid gpu frequency. */
+        board::SetHz(HocClkModule_GPU, GetCurrentNearestGpuFrequency());
+    }
+
     void ApplyGpuDvfs(u32 targetHz) {
         s32 dvfsOffset = config::GetConfigValue(HocClkConfigValue_DVFSOffset);
         dvfsOffset = std::max(dvfsOffset, -80);
@@ -342,19 +364,14 @@ namespace clockManager {
         }
 
         /* Prevent console from combusting if for some reason bad shit happens :P */
-        vmin = std::min(vmin, 1000u);
-
-        /* Get nearest gpu clock; we need this in a second to update the voltage. */
-        u32 gpuHz = board::GetHz(HocClkModule_GPU);
-        u32 maxHz = GetMaxAllowedHz(HocClkModule_GPU, gContext.profile);
-        u32 nearestGpuHz = GetNearestHz(HocClkModule_GPU, gpuHz, maxHz);
+        vmin = ClampGpuVoltage(vmin);
 
         /* Hijack gpu volt table. */
-        board::PcvHijackGpuVolts(vmin);
+        board::PcvHijackGpuVolts(vmin, false);
 
         /* Update gpu frequency to actually use the voltage. */
         if (targetHz) {
-            board::SetHz(HocClkModule_GPU, nearestGpuHz);
+            board::SetHz(HocClkModule_GPU, GetCurrentNearestGpuFrequency());
         } else {
             /* If the target frequency is zero, we reset the frequency to ensure it gets updated even without any frequency override. */
             board::ResetToStockGpu();
@@ -363,7 +380,7 @@ namespace clockManager {
 
     void DVFSReset() {
         if (config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
-            board::PcvHijackGpuVolts(0);  // Reset to vMin
+            board::PcvHijackGpuVolts(0, false);  // Reset to vMin
 
             u32 targetHz = gContext.overrideFreqs[HocClkModule_GPU];
             if (!targetHz) {
@@ -515,6 +532,7 @@ namespace clockManager {
                     if (module == HocClkModule_MEM && targetHz > oldHz && config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
                         ApplyGpuDvfs(targetHz);
                     }
+
                     board::SetHz((HocClkModule)module, nearestHz);
                     gContext.freqs[module] = nearestHz;
 
@@ -560,7 +578,7 @@ namespace clockManager {
         if (hasChanged) {
             board::ResetToStock();
             if (config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
-                board::PcvHijackGpuVolts(0);
+                board::PcvHijackGpuVolts(0, false);
                 board::ResetToStockGpu();
             }
             WaitForNextTick();

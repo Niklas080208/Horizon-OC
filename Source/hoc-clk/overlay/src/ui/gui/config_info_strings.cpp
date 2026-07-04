@@ -542,6 +542,15 @@ std::vector<std::string> ConfigInfoStrings(HocClkConfigValue val, bool isMariko,
                 "- Enabled: Enables GPU scheduling, 96.5% GPU max load",
                 "Default: Do not override"
             };
+        case HocClkConfigValue_LiveGpuVoltage:
+            return {
+                "Adjust GPU voltage on the fly.",
+                "Warning: unstable settings allowed.",
+                "Exception: while RAM OC is active, voltage cannot drop below stability minimum.",
+                "RAM frequency changes overwrite requested voltage.",
+                "Voltage applies globally across all frequencies.",
+                "\"Reset\" restores default or RAM-stable minimum."
+            };
         default:
             return {};
     }

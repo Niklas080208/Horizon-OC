@@ -335,9 +335,9 @@ namespace board {
                 }
 
                 /* 800mV on Mariko, 950mV on Erista. */
-                u32 vmax = GetSocType() == HocClkSocType_Mariko ? 800 : 950;
+                u32 bootVoltage = GetSocType() == HocClkSocType_Mariko ? 800 : 950;
                 constexpr u32 GpuVoltageTableOffset = 312;
-                if (!std::memcmp(&buffer[index + GpuVoltageTableOffset], &vmax, sizeof(vmax))) {
+                if (!std::memcmp(&buffer[index + GpuVoltageTableOffset], &bootVoltage, sizeof(bootVoltage))) {
                     std::memcpy(voltData.voltTable, &buffer[index + GpuVoltageTableOffset], sizeof(voltData.voltTable));
                     voltData.voltTableAddress = base + memoryInfo.addr + GpuVoltageTableOffset + index;
                 }
@@ -365,18 +365,34 @@ namespace board {
         return;
     }
 
-    void PcvHijackGpuVolts(u32 vmin) {
+    void PcvHijackGpuVolts(u32 vmin, bool forceOverwrite) {
         u32 table[192];
         static_assert(sizeof(table) == sizeof(voltData.voltTable), "Invalid gpu voltage table size!");
         std::memcpy(table, voltData.voltTable, sizeof(voltData.voltTable));
 
-        if (voltData.ramVmin == vmin) {
+        /* forceOverwrite needs to be handled regardless. */
+        if (voltData.ramVmin == vmin && !forceOverwrite) {
             return;
         }
 
-        for (u32 i = 0; i < std::size(table); ++i) {
-            if (table[i] && table[i] <= vmin) {
-                table[i] = vmin;
+        /* Skip adjusting table if vmin is zero (voltage reset), unless forced. */
+        if (vmin != 0 || forceOverwrite) {
+            /* Only apply forced voltage override if it's safe to do so. */
+            if (forceOverwrite && vmin < voltData.ramVmin) {
+                vmin = voltData.ramVmin;
+            }
+
+            if (vmin != 0) {
+                for (u32 i = 0; i < std::size(table); ++i) {
+                    if (!table[i]) {
+                        continue;
+                    }
+
+                    const bool raiseVoltageRamOc = table[i] <= vmin && !forceOverwrite;
+                    if (raiseVoltageRamOc || forceOverwrite) {
+                        table[i] = vmin;
+                    }
+                }
             }
         }
 
@@ -388,7 +404,7 @@ namespace board {
 
         Result rc = svcWriteDebugProcessMemory(handle, table, voltData.voltTableAddress, sizeof(table));
 
-        if (R_SUCCEEDED(rc)) {
+        if (R_SUCCEEDED(rc) && !forceOverwrite) {
             voltData.ramVmin = vmin;
         }
 

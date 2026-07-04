@@ -235,6 +235,15 @@ namespace ipcService {
                         return 0;
                     }
                     break;
+
+                case HocClkIpcCmd_RequestGpuVoltage:
+                    if (r->data.size >= sizeof(u32)) {
+                        u32 voltage;
+                        memcpy(&voltage, r->data.ptr, sizeof(u32));
+                        clockManager::ApplyGpuVoltageRequest(voltage);
+                        return 0;
+                    }
+                    break;
             }
 
             return HOCCLK_ERROR(Generic);

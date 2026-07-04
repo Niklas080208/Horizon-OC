@@ -662,6 +662,9 @@ class ExperimentalSettingsSubMenuGui : public MiscGui {
             addConfigToggle(HocClkConfigValue_MarikoMiddleFreqs, nullptr, true);
             addConfigToggle(HocClkConfigValue_LiveCpuUv, nullptr);
         }
+
+        addConfigToggle(HocClkConfigValue_LiveGpuVoltage, "Live GPU Volt Request", false);
+
         std::vector<NamedValue> gpuSchedMethodValues = {
             NamedValue("INI", GpuSchedulingOverrideMethod_Ini),
             NamedValue("NV Service", GpuSchedulingOverrideMethod_NvService),
@@ -2125,6 +2128,41 @@ class GpuSubmenuGui : public MiscGui {
 
         addConfigButton(HocClkConfigValue_DVFSOffset, "GPU DVFS Offset", ValueRange(0, 12, 1, "", 0), "GPU DVFS Offset", &thresholdsDisabled, {},
                         dvfsOffset, false);
+
+        if (this->configList->values[HocClkConfigValue_LiveGpuVoltage]) {
+            std::vector<NamedValue> gpuVoltRequestValues = {
+                NamedValue("Reset", 0),
+            };
+
+            for (u32 mv = IsMariko() ? 420 : 700; mv <= 1050; mv += 5) {
+                gpuVoltRequestValues.push_back(NamedValue(std::to_string(mv) + "mV", mv));
+            }
+
+            tsl::elm::ListItem *gpuVoltRequestBtn = new tsl::elm::ListItem("GPU Volt Request");
+            gpuVoltRequestBtn->setTextColor(tsl::Color(120, 235, 255, 255));
+            gpuVoltRequestBtn->setValue("Request");
+
+            gpuVoltRequestBtn->setClickListener([gpuVoltRequestValues](u64 keys) {
+                if ((keys & HidNpadButton_A) == 0)
+                    return false;
+
+                tsl::changeTo<ValueChoiceGui>(
+                    0, ValueRange(0, 0, 1, "", 1), "GPU Volt Request",
+                    [](u32 value) {
+                        Result rc = hocClkIpcRequestGpuVoltage(value);
+                        if (R_FAILED(rc)) {
+                            FatalGui::openWithResultCode("hocClkIpcRequestGpuVoltage", rc);
+                            return false;
+                        }
+                        return true;
+                    },
+                    ValueThresholds(), false, std::map<u32, std::string>{}, gpuVoltRequestValues, false, false);
+
+                return true;
+            });
+
+            this->listElement->addItem(gpuVoltRequestBtn);
+        }
 
         tsl::elm::ListItem *customTableSubmenu = new tsl::elm::ListItem("GPU Voltage Table");
         customTableSubmenu->setClickListener([](u64 keys) {

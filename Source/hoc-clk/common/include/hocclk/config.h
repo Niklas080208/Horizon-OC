@@ -70,6 +70,7 @@ typedef enum {
 
     HocClkConfigValue_AulaDisplayColorPreset,
     HocClkConfigValue_MarikoMiddleFreqs,
+    HocClkConfigValue_LiveGpuVoltage,
 
     HocClkConfigValue_AutoRAMCPUOverclock,
     HocClkConfigValue_AutoRamCpuCpuOCFreq,
@@ -314,6 +315,9 @@ static inline const char* hocclkFormatConfigValue(HocClkConfigValue val, bool pr
             return pretty ? "Aula Display Color Preset" : "aula_color_preset";
         case HocClkConfigValue_MarikoMiddleFreqs:
             return pretty ? "Mariko Middle Clocks" : "mariko_middle_freqs";
+
+        case HocClkConfigValue_LiveGpuVoltage:
+            return pretty ? "GPU Voltage Request" : "gpu_voltage_request";
 
         case HocClkConfigValue_AutoRAMCPUOverclock:
             return pretty ? "Auto High RAM CPU OC" : "auto_high_ram_cpu_oc";
@@ -568,6 +572,7 @@ static inline uint64_t hocclkDefaultConfigValue(HocClkConfigValue val)
         case HocClkConfigValue_GPUSchedulingMethod:
         case HocClkConfigValue_MemoryFrequencyMeasurementMode:
         case HocClkConfigValue_MarikoMiddleFreqs:
+        case HocClkConfigValue_LiveGpuVoltage:
             return 0ULL;
         case HocClkConfigValue_RamDisplayUnit:
             return (uint64_t)RamDisplayUnit_MHz;
@@ -625,6 +630,7 @@ static inline uint64_t hocclkValidConfigValue(HocClkConfigValue val, uint64_t in
         case HocClkConfigValue_LiveCpuUv:
         case HocClkConfigValue_GPUSchedulingMethod:
         case HocClkConfigValue_MarikoMiddleFreqs:
+        case HocClkConfigValue_LiveGpuVoltage:
         case HocClkConfigValue_AutoRAMCPUOverclock:
             return (input & 0x1) == input;
 
