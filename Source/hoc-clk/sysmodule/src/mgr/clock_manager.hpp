@@ -63,7 +63,7 @@ namespace clockManager {
 
     void GetFreqList(HocClkModule module, std::uint32_t *list, std::uint32_t maxCount, std::uint32_t *outCount);
 
-    void ApplyGpuVoltageRequest(u32 voltage);
+    void ApplyGpuFreqVoltRequest(u32 voltage, u32 hz);
 
     void Tick();
     void WaitForNextTick();

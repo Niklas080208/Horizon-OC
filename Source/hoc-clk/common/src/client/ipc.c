@@ -168,6 +168,11 @@ Result hocClkIpcGetKipData()
     return serviceDispatchIn(&g_hocclkSrv, HocClkIpcCmd_GetKipData, temp);
 }
 
-Result hocClkIpcRequestGpuVoltage(u32 voltage) {
-    return serviceDispatchIn(&g_hocclkSrv, HocClkIpcCmd_RequestGpuVoltage, voltage);
+Result hocClkIpcRequestGpuVoltage(u32 voltage, u32 hz) {
+    const HocClkIpc_RequestGpuVoltage_Args args = {
+        .voltage = voltage,
+        .hz = hz,
+    };
+
+    return serviceDispatchIn(&g_hocclkSrv, HocClkIpcCmd_RequestGpuVoltage, args);
 }

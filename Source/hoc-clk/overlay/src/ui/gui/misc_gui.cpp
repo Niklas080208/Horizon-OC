@@ -482,6 +482,116 @@ void MiscGui::addFreqButton(HocClkConfigValue configVal, const char *altName, Ho
     this->configRanges[configVal] = ValueRange(0, 0, 0, "MHz", 1);
 }
 
+void MiscGui::addGpuFreqVoltageButton(HocClkConfigValue configVal, const char *altName, uint32_t freqHz, const ValueRange &range,
+                                      const std::string &categoryName, const ValueThresholds *thresholds,
+                                      const std::map<uint32_t, std::string> &labels, const std::vector<NamedValue> &namedValues,
+                                      bool showDefaultValue, bool kip) {
+    const char *configName = altName ? altName : hocclkFormatConfigValue(configVal, true);
+    auto infoStrings = ConfigInfoStrings(configVal, IsMariko(), IsHoag());
+
+    tsl::elm::ListItem *listItem = new tsl::elm::ListItem(configName);
+    if (!kip)
+        listItem->setTextColor(tsl::Color(120, 235, 255, 255));
+
+    uint64_t currentValue = this->configList->values[configVal];
+    char valueText[32];
+    if (currentValue == 0 && showDefaultValue) {
+        snprintf(valueText, sizeof(valueText), "%s", VALUE_DEFAULT_TEXT);
+    } else {
+        bool foundNamedValue = false;
+        for (const auto &namedValue : namedValues) {
+            if (currentValue == namedValue.value) {
+                snprintf(valueText, sizeof(valueText), "%s", namedValue.name.c_str());
+                foundNamedValue = true;
+                break;
+            }
+        }
+        if (!foundNamedValue) {
+            uint64_t displayValue = currentValue / range.divisor;
+            if (!range.suffix.empty()) {
+                snprintf(valueText, sizeof(valueText), "%lu %s", displayValue, range.suffix.c_str());
+            } else {
+                snprintf(valueText, sizeof(valueText), "%lu", displayValue);
+            }
+        }
+    }
+    listItem->setValue(valueText);
+
+    ValueThresholds thresholdsCopy = (thresholds ? *thresholds : ValueThresholds{});
+
+    listItem->setClickListener([this, configVal, range, categoryName, thresholdsCopy, labels, showDefaultValue, kip, freqHz,
+                                infoStrings = std::move(infoStrings), configName = std::string(configName)](u64 keys) {
+        if (!infoStrings.empty() && (keys & HidNpadButton_Y) && !(keys & ~HidNpadButton_Y)) {
+            tsl::changeTo<InfoGui>(configName, infoStrings);
+            return true;
+        }
+
+        if ((keys & HidNpadButton_X) && !(keys & ~HidNpadButton_X)) {
+            if (!this->configList->values[HocClkConfigValue_LiveGpuVoltage])
+                return false;
+
+            uint32_t voltageMv = (uint32_t)this->configList->values[configVal];
+            Result rc = hocClkIpcRequestGpuVoltage(voltageMv, freqHz);
+            if (R_FAILED(rc)) {
+                FatalGui::openWithResultCode("hocClkIpcRequestGpuVoltage", rc);
+                return false;
+            }
+            return true;
+        }
+
+        if ((keys & HidNpadButton_A) == 0)
+            return false;
+
+        std::uint32_t currentValue = this->configList->values[configVal];
+
+        auto nvIt = this->configNamedValues.find(configVal);
+        const std::vector<NamedValue> &liveNamedValues = (nvIt != this->configNamedValues.end()) ? nvIt->second : std::vector<NamedValue>();
+
+        if (thresholdsCopy.warning != 0 || thresholdsCopy.danger != 0) {
+            tsl::changeTo<ValueChoiceGui>(
+                currentValue, range, categoryName,
+                [this, configVal, kip](std::uint32_t value) {
+                    this->configList->values[configVal] = value;
+                    Result rc = hocclkIpcSetConfigValues(this->configList);
+                    if (R_FAILED(rc)) {
+                        FatalGui::openWithResultCode("hocclkIpcSetConfigValues", rc);
+                        return false;
+                    }
+                    if (kip) {
+                        shouldSaveKip = true;
+                    }
+                    this->lastContextUpdate = armGetSystemTick();
+                    return true;
+                },
+                thresholdsCopy, true, labels, liveNamedValues, showDefaultValue);
+        } else {
+            tsl::changeTo<ValueChoiceGui>(
+                currentValue, range, categoryName,
+                [this, configVal, kip](std::uint32_t value) {
+                    this->configList->values[configVal] = value;
+                    Result rc = hocclkIpcSetConfigValues(this->configList);
+                    if (R_FAILED(rc)) {
+                        FatalGui::openWithResultCode("hocclkIpcSetConfigValues", rc);
+                        return false;
+                    }
+                    if (kip) {
+                        shouldSaveKip = true;
+                    }
+                    this->lastContextUpdate = armGetSystemTick();
+                    return true;
+                },
+                ValueThresholds(), false, labels, liveNamedValues, showDefaultValue);
+        }
+
+        return true;
+    });
+
+    this->listElement->addItem(listItem);
+    this->configButtons[configVal] = listItem;
+    this->configRanges[configVal] = range;
+    this->configNamedValues[configVal] = namedValues;
+}
+
 void MiscGui::listUI() {
     Result rc = hocclkIpcGetConfigValues(configList);
     if (R_FAILED(rc)) [[unlikely]] {
@@ -2129,41 +2239,6 @@ class GpuSubmenuGui : public MiscGui {
         addConfigButton(HocClkConfigValue_DVFSOffset, "GPU DVFS Offset", ValueRange(0, 12, 1, "", 0), "GPU DVFS Offset", &thresholdsDisabled, {},
                         dvfsOffset, false);
 
-        if (this->configList->values[HocClkConfigValue_LiveGpuVoltage]) {
-            std::vector<NamedValue> gpuVoltRequestValues = {
-                NamedValue("Reset", 0),
-            };
-
-            for (u32 mv = IsMariko() ? 420 : 700; mv <= 1050; mv += 5) {
-                gpuVoltRequestValues.push_back(NamedValue(std::to_string(mv) + "mV", mv));
-            }
-
-            tsl::elm::ListItem *gpuVoltRequestBtn = new tsl::elm::ListItem("GPU Volt Request");
-            gpuVoltRequestBtn->setTextColor(tsl::Color(120, 235, 255, 255));
-            gpuVoltRequestBtn->setValue("Request");
-
-            gpuVoltRequestBtn->setClickListener([gpuVoltRequestValues](u64 keys) {
-                if ((keys & HidNpadButton_A) == 0)
-                    return false;
-
-                tsl::changeTo<ValueChoiceGui>(
-                    0, ValueRange(0, 0, 1, "", 1), "GPU Volt Request",
-                    [](u32 value) {
-                        Result rc = hocClkIpcRequestGpuVoltage(value);
-                        if (R_FAILED(rc)) {
-                            FatalGui::openWithResultCode("hocClkIpcRequestGpuVoltage", rc);
-                            return false;
-                        }
-                        return true;
-                    },
-                    ValueThresholds(), false, std::map<u32, std::string>{}, gpuVoltRequestValues, false, false);
-
-                return true;
-            });
-
-            this->listElement->addItem(gpuVoltRequestBtn);
-        }
-
         tsl::elm::ListItem *customTableSubmenu = new tsl::elm::ListItem("GPU Voltage Table");
         customTableSubmenu->setClickListener([](u64 keys) {
             if (keys & HidNpadButton_A) {
@@ -2276,7 +2351,6 @@ class GpuCustomTableSubmenuGui : public MiscGui {
         };
 
         if (IsMariko()) {
-
             tsl::elm::CustomDrawer *warningText = new tsl::elm::CustomDrawer([](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
                 renderer->drawString("\uE150 Setting GPU Clocks past", false, x + 20, y + 30, 18, tsl::style::color::ColorText);
                 renderer->drawString("1305MHz without a proper undervolt", false, x + 20, y + 50, 18, tsl::style::color::ColorText);
@@ -2287,61 +2361,61 @@ class GpuCustomTableSubmenuGui : public MiscGui {
             warningText->setBoundaries(0, 0, tsl::cfg::FramebufferWidth, 130);
             this->listElement->addItem(warningText);
 
-            addConfigButton(KipConfigValue_g_volt_76800, "76.8MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts, false,
-                            true);
-            addConfigButton(KipConfigValue_g_volt_153600, "153.6MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_230400, "230.4MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_307200, "307.2MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_384000, "384.0MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_460800, "460.8MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_537600, "537.6MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_614400, "614.4MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_691200, "691.2MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_768000, "768.0MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_844800, "844.8MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_921600, "921.6MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_998400, "998.4MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {}, mGpuVolts,
-                            false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_76800, "76.8MHz", 76'800'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_153600, "153.6MHz", 153'600'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_230400, "230.4MHz", 230'400'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_307200, "307.2MHz", 307'200'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_384000, "384.0MHz", 384'000'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_460800, "460.8MHz", 460'800'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_537600, "537.6MHz", 537'600'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_614400, "614.4MHz", 614'400'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_691200, "691.2MHz", 691'200'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_768000, "768.0MHz", 768'000'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_844800, "844.8MHz", 844'800'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_921600, "921.6MHz", 921'600'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_998400, "998.4MHz", 998'400'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+
             if (this->configList->values[KipConfigValue_marikoGpuUV] >= GPUUVLevel_SLT) {
-                addConfigButton(KipConfigValue_g_volt_1075200, "1075.2MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {},
-                                mGpuVolts, false, true);
+                addGpuFreqVoltageButton(KipConfigValue_g_volt_1075200, "1075.2MHz", 1'075'200'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                        &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
                 if (this->configList->values[KipConfigValue_marikoGpuUV] >= GPUUVLevel_HiOPT)
-                    addConfigButton(KipConfigValue_g_volt_1152000, "1152.0MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {},
-                                    mGpuVolts, false, true);
+                    addGpuFreqVoltageButton(KipConfigValue_g_volt_1152000, "1152.0MHz", 1'152'000'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                            &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
                 if (this->configList->values[KipConfigValue_marikoGpuUV] >= GPUUVLevel_HighUV) {
-                    addConfigButton(KipConfigValue_g_volt_1228800, "1228.8MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {},
-                                    mGpuVolts, false, true);
-                    addConfigButton(KipConfigValue_g_volt_1267200, "1267.2MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {},
-                                    mGpuVolts, false, true);
-                    addConfigButton(KipConfigValue_g_volt_1305600, "1305.6MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {},
-                                    mGpuVolts, false, true);
-                    addConfigButton(KipConfigValue_g_volt_1344000, "1344.0MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {},
-                                    mGpuVolts_noAuto, false, true);
-                    addConfigButton(KipConfigValue_g_volt_1382400, "1382.4MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {},
-                                    mGpuVolts_noAuto, false, true);
-                    addConfigButton(KipConfigValue_g_volt_1420800, "1420.8MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {},
-                                    mGpuVolts_noAuto, false, true);
-                    addConfigButton(KipConfigValue_g_volt_1459200, "1459.2MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {},
-                                    mGpuVolts_noAuto, false, true);
-                    addConfigButton(KipConfigValue_g_volt_1497600, "1497.6MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {},
-                                    mGpuVolts_noAuto, false, true);
-                    addConfigButton(KipConfigValue_g_volt_1536000, "1536.0MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &MgpuVmaxThresholds, {},
-                                    mGpuVolts_noAuto, false, true);
+                    addGpuFreqVoltageButton(KipConfigValue_g_volt_1228800, "1228.8MHz", 1'228'800'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                            &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+                    addGpuFreqVoltageButton(KipConfigValue_g_volt_1267200, "1267.2MHz", 1'267'200'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                            &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+                    addGpuFreqVoltageButton(KipConfigValue_g_volt_1305600, "1305.6MHz", 1'305'600'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                            &MgpuVmaxThresholds, {}, mGpuVolts, false, true);
+                    addGpuFreqVoltageButton(KipConfigValue_g_volt_1344000, "1344.0MHz", 1'344'000'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                            &MgpuVmaxThresholds, {}, mGpuVolts_noAuto, false, true);
+                    addGpuFreqVoltageButton(KipConfigValue_g_volt_1382400, "1382.4MHz", 1'382'400'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                            &MgpuVmaxThresholds, {}, mGpuVolts_noAuto, false, true);
+                    addGpuFreqVoltageButton(KipConfigValue_g_volt_1420800, "1420.8MHz", 1'420'800'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                            &MgpuVmaxThresholds, {}, mGpuVolts_noAuto, false, true);
+                    addGpuFreqVoltageButton(KipConfigValue_g_volt_1459200, "1459.2MHz", 1'459'200'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                            &MgpuVmaxThresholds, {}, mGpuVolts_noAuto, false, true);
+                    addGpuFreqVoltageButton(KipConfigValue_g_volt_1497600, "1497.6MHz", 1'497'600'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                            &MgpuVmaxThresholds, {}, mGpuVolts_noAuto, false, true);
+                    addGpuFreqVoltageButton(KipConfigValue_g_volt_1536000, "1536.0MHz", 1'536'000'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                            &MgpuVmaxThresholds, {}, mGpuVolts_noAuto, false, true);
                 }
             }
         } else {
-
             tsl::elm::CustomDrawer *warningText = new tsl::elm::CustomDrawer([](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
                 renderer->drawString("\uE150 Setting GPU Clocks past", false, x + 20, y + 30, 18, tsl::style::color::ColorText);
                 renderer->drawString("921MHz without a proper undervolt", false, x + 20, y + 50, 18, tsl::style::color::ColorText);
@@ -2352,62 +2426,63 @@ class GpuCustomTableSubmenuGui : public MiscGui {
             warningText->setBoundaries(0, 0, tsl::cfg::FramebufferWidth, 130);
             this->listElement->addItem(warningText);
 
-            addConfigButton(KipConfigValue_g_volt_e_76800, "76.8MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_115200, "115.2MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_153600, "153.6MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_192000, "192.0MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_230400, "230.4MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_268800, "268.8MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_307200, "307.2MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_345600, "345.6MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_384000, "384.0MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_422400, "422.4MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_460800, "460.8MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_499200, "499.2MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_537600, "537.6MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_576000, "576.0MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_614400, "614.4MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_652800, "652.8MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_691200, "691.2MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_729600, "729.6MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_768000, "768.0MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_806400, "806.4MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_844800, "844.8MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_883200, "883.2MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
-            addConfigButton(KipConfigValue_g_volt_e_921600, "921.6MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {}, eGpuVolts,
-                            false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_76800, "76.8MHz", 76'800'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_115200, "115.2MHz", 115'200'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_153600, "153.6MHz", 153'600'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_192000, "192.0MHz", 192'000'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_230400, "230.4MHz", 230'400'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_268800, "268.8MHz", 268'800'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_307200, "307.2MHz", 307'200'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_345600, "345.6MHz", 345'600'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_384000, "384.0MHz", 384'000'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_422400, "422.4MHz", 422'400'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_460800, "460.8MHz", 460'800'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_499200, "499.2MHz", 499'200'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_537600, "537.6MHz", 537'600'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_576000, "576.0MHz", 576'000'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_614400, "614.4MHz", 614'400'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_652800, "652.8MHz", 652'800'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_691200, "691.2MHz", 691'200'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_729600, "729.6MHz", 729'600'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_768000, "768.0MHz", 768'000'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_806400, "806.4MHz", 806'400'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_844800, "844.8MHz", 844'800'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_883200, "883.2MHz", 883'200'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+            addGpuFreqVoltageButton(KipConfigValue_g_volt_e_921600, "921.6MHz", 921'600'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                    &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+
             if (this->configList->values[KipConfigValue_eristaGpuUV] >= GPUUVLevel_SLT)
-                addConfigButton(KipConfigValue_g_volt_e_960000, "960.0MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {},
-                                eGpuVolts, false, true);
+                addGpuFreqVoltageButton(KipConfigValue_g_volt_e_960000, "960.0MHz", 960'000'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                        &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
             if (this->configList->values[KipConfigValue_eristaGpuUV] >= GPUUVLevel_HiOPT) {
-                addConfigButton(KipConfigValue_g_volt_e_998400, "998.4MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {},
-                                eGpuVolts, false, true);
-                addConfigButton(KipConfigValue_g_volt_e_1036800, "1036.8MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {},
-                                eGpuVolts_noAuto, false, true);
-                addConfigButton(KipConfigValue_g_volt_e_1075200, "1075.2MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &EgpuVmaxThresholds, {},
-                                eGpuVolts_noAuto, false, true);
+                addGpuFreqVoltageButton(KipConfigValue_g_volt_e_998400, "998.4MHz", 998'400'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                        &EgpuVmaxThresholds, {}, eGpuVolts, false, true);
+                addGpuFreqVoltageButton(KipConfigValue_g_volt_e_1036800, "1036.8MHz", 1'036'800'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                        &EgpuVmaxThresholds, {}, eGpuVolts_noAuto, false, true);
+                addGpuFreqVoltageButton(KipConfigValue_g_volt_e_1075200, "1075.2MHz", 1'075'200'000, ValueRange(0, 0, 0, "0", 1), "Voltage",
+                                        &EgpuVmaxThresholds, {}, eGpuVolts_noAuto, false, true);
             }
         }
     }

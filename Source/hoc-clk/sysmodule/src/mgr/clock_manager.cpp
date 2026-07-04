@@ -333,8 +333,8 @@ namespace clockManager {
     }
 
     u32 ClampGpuVoltage(u32 voltage) {
-        constexpr u32 MaxGpuVoltage = 960;
-        return std::min(voltage, MaxGpuVoltage);
+        static const u32 maxGpuVoltage = board::GetSocType() == HocClkSocType_Mariko ? 960 : 995;
+        return std::min(voltage, maxGpuVoltage);
     }
 
     u32 GetCurrentNearestGpuFrequency() {
@@ -343,15 +343,17 @@ namespace clockManager {
         return GetNearestHz(HocClkModule_GPU, gpuHz, maxHz);
     }
 
-    void ApplyGpuVoltageRequest(u32 voltage) {
-        fileUtils::LogLine("Unclamped voltage request: %u", voltage);
+    void ApplyGpuFreqVoltRequest(u32 voltage, u32 hz) {
         voltage = ClampGpuVoltage(voltage);
-        fileUtils::LogLine("Actual voltage: %u", voltage);
+        u32 currentFreq = GetCurrentNearestGpuFrequency();
+        /* If not freq was provided, use the current freq. */
+        if (hz == 0) {
+            hz = currentFreq;
+        }
 
-        board::PcvHijackGpuVolts(voltage, true);
-
+        board::PcvHijackGpuFrequency(voltage, hz);
         /* Update the voltage using the currently nearest valid gpu frequency. */
-        board::SetHz(HocClkModule_GPU, GetCurrentNearestGpuFrequency());
+        board::SetHz(HocClkModule_GPU, currentFreq);
     }
 
     void ApplyGpuDvfs(u32 targetHz) {
@@ -367,7 +369,7 @@ namespace clockManager {
         vmin = ClampGpuVoltage(vmin);
 
         /* Hijack gpu volt table. */
-        board::PcvHijackGpuVolts(vmin, false);
+        board::PcvHijackGpuVolts(vmin);
 
         /* Update gpu frequency to actually use the voltage. */
         if (targetHz) {
@@ -380,7 +382,7 @@ namespace clockManager {
 
     void DVFSReset() {
         if (config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
-            board::PcvHijackGpuVolts(0, false);  // Reset to vMin
+            board::PcvHijackGpuVolts(0);  // Reset to vMin
 
             u32 targetHz = gContext.overrideFreqs[HocClkModule_GPU];
             if (!targetHz) {
@@ -578,7 +580,7 @@ namespace clockManager {
         if (hasChanged) {
             board::ResetToStock();
             if (config::GetConfigValue(HocClkConfigValue_DVFSMode) == DVFSMode_Hijack) {
-                board::PcvHijackGpuVolts(0, false);
+                board::PcvHijackGpuVolts(0);
                 board::ResetToStockGpu();
             }
             WaitForNextTick();

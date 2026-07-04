@@ -50,7 +50,7 @@ Result hocclkIpcSetConfigValues(HocClkConfigValueList* configValues);
 Result hocclkIpcGetFreqList(HocClkModule module, u32* list, u32 maxCount, u32* outCount);
 Result hocClkIpcSetKipData();
 Result hocClkIpcGetKipData();
-Result hocClkIpcRequestGpuVoltage(u32 voltage);
+Result hocClkIpcRequestGpuVoltage(u32 voltage, u32 hz);
 
 static inline Result hocclkIpcRemoveOverride(HocClkModule module)
 {

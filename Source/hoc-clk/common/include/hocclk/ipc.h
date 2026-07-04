@@ -70,3 +70,8 @@ typedef struct
     HocClkModule module;
     uint32_t maxCount;
 } HocClkIpc_GetFreqList_Args;
+
+typedef struct {
+    u32 voltage;
+    u32 hz;
+} HocClkIpc_RequestGpuVoltage_Args;
