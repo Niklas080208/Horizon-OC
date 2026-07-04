@@ -51,6 +51,14 @@ if [ ! -d "$ATMOSPHERE_DIR" ]; then
     echo
     echo "*** Cloning atmosphere ***"
     git clone "$ATMOSPHERE_URL" "$ATMOSPHERE_DIR"
+
+    cd "$ATMOSPHERE_DIR"
+
+    git fetch --tags --quiet
+    LATEST_TAG=$(git tag --sort=-version:refname | head -n1)
+    git checkout -q -b build "$LATEST_TAG"
+
+    cd "$ROOT_DIR"
 fi
 
 DEST="build/atmosphere/stratosphere/loader/"
