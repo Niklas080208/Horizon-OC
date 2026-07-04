@@ -490,7 +490,7 @@ void MiscGui::addGpuFreqVoltageButton(HocClkConfigValue configVal, const char *a
     auto infoStrings = ConfigInfoStrings(configVal, IsMariko(), IsHoag());
 
     tsl::elm::ListItem *listItem = new tsl::elm::ListItem(configName);
-    if (!kip)
+    if (!kip || this->configList->values[HocClkConfigValue_LiveGpuVoltage])
         listItem->setTextColor(tsl::Color(120, 235, 255, 255));
 
     uint64_t currentValue = this->configList->values[configVal];
@@ -526,16 +526,49 @@ void MiscGui::addGpuFreqVoltageButton(HocClkConfigValue configVal, const char *a
             return true;
         }
 
-        if ((keys & HidNpadButton_X) && !(keys & ~HidNpadButton_X)) {
+        if ((keys & HidNpadButton_Y) && !(keys & ~HidNpadButton_Y)) {
             if (!this->configList->values[HocClkConfigValue_LiveGpuVoltage])
                 return false;
 
-            uint32_t voltageMv = (uint32_t)this->configList->values[configVal];
-            Result rc = hocClkIpcRequestGpuVoltage(voltageMv, freqHz);
-            if (R_FAILED(rc)) {
-                FatalGui::openWithResultCode("hocClkIpcRequestGpuVoltage", rc);
-                return false;
+            std::uint32_t currentValue = this->configList->values[configVal];
+
+            auto nvIt = this->configNamedValues.find(configVal);
+            const std::vector<NamedValue> &liveNamedValues = (nvIt != this->configNamedValues.end()) ? nvIt->second : std::vector<NamedValue>();
+
+            std::string liveCategoryName = categoryName + " (Live)";
+
+            auto liveCallback = [this, configVal, kip, freqHz](std::uint32_t value) {
+                this->configList->values[configVal] = value;
+                Result rc = hocclkIpcSetConfigValues(this->configList);
+                if (R_FAILED(rc)) {
+                    FatalGui::openWithResultCode("hocclkIpcSetConfigValues", rc);
+                    return false;
+                }
+                if (kip) {
+                    shouldSaveKip = true;
+                }
+                this->lastContextUpdate = armGetSystemTick();
+
+                Result rcVolt = hocClkIpcRequestGpuVoltage((uint32_t)value, freqHz);
+                if (R_FAILED(rcVolt)) {
+                    FatalGui::openWithResultCode("hocClkIpcRequestGpuVoltage", rcVolt);
+                    return false;
+                }
+                return true;
+            };
+
+            if (thresholdsCopy.warning != 0 || thresholdsCopy.danger != 0) {
+                tsl::changeTo<ValueChoiceGui>(
+                    currentValue, range, liveCategoryName,
+                    liveCallback,
+                    thresholdsCopy, true, labels, liveNamedValues, showDefaultValue);
+            } else {
+                tsl::changeTo<ValueChoiceGui>(
+                    currentValue, range, liveCategoryName,
+                    liveCallback,
+                    ValueThresholds(), false, labels, liveNamedValues, showDefaultValue);
             }
+
             return true;
         }
 
