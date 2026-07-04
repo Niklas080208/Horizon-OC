@@ -344,6 +344,13 @@ namespace clockManager {
     }
 
     void ApplyGpuFreqVoltRequest(u32 voltage, u32 hz) {
+        /* Apply nothing with disabled voltage. */
+        constexpr u32 DisabledVoltage = 2000;
+        if (voltage == DisabledVoltage) {
+            notification::writeNotification("Horizon OC\nDeactivated frequency.\nReboot to apply.");
+            return;
+        }
+
         voltage = ClampGpuVoltage(voltage);
         u32 currentFreq = GetCurrentNearestGpuFrequency();
         /* If not freq was provided, use the current freq. */
