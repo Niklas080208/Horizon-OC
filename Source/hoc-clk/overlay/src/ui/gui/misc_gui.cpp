@@ -26,7 +26,7 @@
 #include "labels.h"
 #include "misc_gui.h"
 #include "ult_ext.h"
-
+#include "main_gui.h"
 
 // This workaround *may* not be nessasary, but it seems to help with reducing stutter
 static void kipDataThreadFunc(void *) {
@@ -742,6 +742,11 @@ class GeneralSettingsSubMenuGui : public MiscGui {
     GeneralSettingsSubMenuGui() {
     }
 
+    bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                      HidAnalogStickState rightJoyStick) override {
+        return false;
+    }
+
     protected:
     void listUI() override {
         Result rc = hocclkIpcGetConfigValues(this->configList);
@@ -790,6 +795,11 @@ class GeneralSettingsSubMenuGui : public MiscGui {
 class ExperimentalSettingsSubMenuGui : public MiscGui {
     public:
     ExperimentalSettingsSubMenuGui() {
+    }
+
+    bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                      HidAnalogStickState rightJoyStick) override {
+        return false;
     }
 
     protected:
@@ -906,6 +916,11 @@ class GovernorSettingsSubMenuGui : public MiscGui {
     GovernorSettingsSubMenuGui() {
     }
 
+    bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                      HidAnalogStickState rightJoyStick) override {
+        return false;
+    }
+
     protected:
     void listUI() override {
         Result rc = hocclkIpcGetConfigValues(this->configList);
@@ -929,6 +944,11 @@ class GovernorSettingsSubMenuGui : public MiscGui {
 class DisplaySubMenuGui : public MiscGui {
     public:
     DisplaySubMenuGui() {
+    }
+
+    bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                      HidAnalogStickState rightJoyStick) override {
+        return false;
     }
 
     protected:
@@ -980,6 +1000,11 @@ class SafetySubMenuGui : public MiscGui {
     SafetySubMenuGui() {
     }
 
+    bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                      HidAnalogStickState rightJoyStick) override {
+        return false;
+    }
+
     protected:
     void listUI() override {
         Result rc = hocclkIpcGetConfigValues(this->configList);
@@ -1002,6 +1027,11 @@ class SafetySubMenuGui : public MiscGui {
 class RamSubmenuGui : public MiscGui {
     public:
     RamSubmenuGui() {
+    }
+
+    bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                      HidAnalogStickState rightJoyStick) override {
+        return false;
     }
 
     protected:
@@ -1237,6 +1267,11 @@ class RamSubmenuGui : public MiscGui {
 class RamTimingsSubmenuGui : public MiscGui {
     public:
     RamTimingsSubmenuGui() {
+    }
+
+    bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                      HidAnalogStickState rightJoyStick) override {
+        return false;
     }
 
     protected:
@@ -1484,6 +1519,11 @@ class RamTimingsSubmenuGui : public MiscGui {
 class RamLatenciesSubmenuGui : public MiscGui {
     public:
     RamLatenciesSubmenuGui() {
+    }
+
+    bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                      HidAnalogStickState rightJoyStick) override {
+        return false;
     }
 
     tsl::elm::Element *baseUI() override {
@@ -1987,6 +2027,11 @@ class CpuSubmenuGui : public MiscGui {
     CpuSubmenuGui() {
     }
 
+    bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                      HidAnalogStickState rightJoyStick) override {
+        return false;
+    }
+
     protected:
     void listUI() override {
         Result rc = hocclkIpcGetConfigValues(this->configList);  // populate config list early otherwise wont work
@@ -2145,6 +2190,11 @@ class GpuSubmenuGui : public MiscGui {
     GpuSubmenuGui() {
     }
 
+    bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                      HidAnalogStickState rightJoyStick) override {
+        return false;
+    }
+
     protected:
     void listUI() override {
         Result rc = hocclkIpcGetConfigValues(this->configList);
@@ -2288,6 +2338,11 @@ class GpuSubmenuGui : public MiscGui {
 class GpuCustomTableSubmenuGui : public MiscGui {
     public:
     GpuCustomTableSubmenuGui() {
+    }
+
+    bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                      HidAnalogStickState rightJoyStick) override {
+        return false;
     }
 
     protected:
@@ -2525,6 +2580,11 @@ class SocCustomTableSubmenuGui : public MiscGui {
     public:
     SocCustomTableSubmenuGui() {}
 
+    bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                      HidAnalogStickState rightJoyStick) override {
+        return false;
+    }
+
     protected:
     void listUI() override {
 
@@ -2671,4 +2731,8 @@ void MiscGui::refresh() {
             }
         }
     }
+}
+
+std::string MiscGui::getJumpToItemName() {
+    return "Settings";
 }

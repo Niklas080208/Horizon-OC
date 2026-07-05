@@ -233,6 +233,10 @@ void AboutGui::update()
     BaseMenuGui::update();
 }
 
+std::string AboutGui::getJumpToItemName() {
+    return "About";
+}
+
 void AboutGui::refresh()
 {
     BaseMenuGui::refresh();
@@ -320,6 +324,11 @@ void AboutGui::refresh()
 class CreditsSubMenu : public AboutGui {
     public:
         CreditsSubMenu() { }
+
+        bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
+                          HidAnalogStickState rightJoyStick) override {
+            return false;
+        }
 
     protected:
         ImageElement* CatImage = NULL;
