@@ -21,7 +21,7 @@
 
 > **THIS TOOL CAN BE DANGEROUS IF MISUSED. PROCEED WITH CAUTION.**
 > Due to the design of Horizon OS, **overclocking RAM can cause NAND OR SD CORRUPTION.**
-> Ensure you have a **full NAND, PROINFO, EMUMMC and SD backup** before proceeding.
+> Ensure you have a **full NAND, PRODINFO, EMUMMC and SD backup** before proceeding.
 
 ---
 
