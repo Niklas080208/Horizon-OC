@@ -72,6 +72,11 @@ It enables advanced CPU, GPU, and RAM tuning with user-friendly configuration to
 
 ---
 
+## Donating
+
+We don't accept donations. Put your spare cash into a charity instead :)
+
+---
 ## Building from Source
 
 Refer to COMPILATION.md
