@@ -530,11 +530,13 @@ namespace ams::ldr::hoc::pcv::mariko {
         table->la_scale_regs.mc_latency_allowance_hc_1      =              (table->la_scale_regs.mc_latency_allowance_hc_1      & Mask2)    |  allowance1;
         table->la_scale_regs.mc_latency_allowance_vi2_0     =              (table->la_scale_regs.mc_latency_allowance_vi2_0     & Mask2)    |  allowance1;
 
-        table->dram_timings.t_rp  = tRFCpb;
-        table->dram_timings.t_rfc = tRFCab;
+        table->dram_timings.t_rp  = tRP_values[0];
+        const u32 tRFCabStock = tRFC_values[0] * 2;
+        table->dram_timings.t_rfc = tRFCabStock;
 
         table->dram_timings.rl = RL;
         table->emc_mrw2        = (table->emc_mrw2 & ~0xFFu) | static_cast<u32>(mrw2);
+        table->emc_mrw         = (table->emc_mrw  & ~0x70u) | 0x40; /* nWR /*
         table->emc_cfg_2       = 0x11083D;
     }
 
