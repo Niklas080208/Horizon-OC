@@ -536,7 +536,7 @@ namespace ams::ldr::hoc::pcv::mariko {
 
         table->dram_timings.rl = RL;
         table->emc_mrw2        = (table->emc_mrw2 & ~0xFFu) | static_cast<u32>(mrw2);
-        table->emc_mrw         = (table->emc_mrw  & ~0x70u) | 0x40; /* nWR /*
+        table->emc_mrw         = (table->emc_mrw  & ~0x70u) | 0x40; /* nWR */
         table->emc_cfg_2       = 0x11083D;
     }
 
