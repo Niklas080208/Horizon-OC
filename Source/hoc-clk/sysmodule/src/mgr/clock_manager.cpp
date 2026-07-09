@@ -337,10 +337,27 @@ namespace clockManager {
         return std::min(voltage, maxGpuVoltage);
     }
 
-    u32 GetCurrentNearestGpuFrequency() {
-        u32 gpuHz = board::GetHz(HocClkModule_GPU);
-        u32 maxHz = GetMaxAllowedHz(HocClkModule_GPU, gContext.profile);
-        return GetNearestHz(HocClkModule_GPU, gpuHz, maxHz);
+    u32 GetCurrentNearestFrequency(HocClkModule module) {
+        /* Target freq may not match actual frequency so don't even bother with that. */
+        u32 gpuHz = board::GetHz(module);
+        u32 maxHz = GetMaxAllowedHz(module, gContext.profile);
+        return GetNearestHz(module, gpuHz, maxHz);
+    }
+
+    u32 GetNearestOverrideHz(HocClkModule module) {
+        u32 targetHz = gContext.overrideFreqs[module];
+        if (!targetHz) {
+            targetHz = config::GetAutoClockHz(gContext.applicationId, module, gContext.profile, false);
+            if (!targetHz) {
+                targetHz = config::GetAutoClockHz(HOCCLK_GLOBAL_PROFILE_TID, module, gContext.profile, false);
+            }
+        }
+
+        if (targetHz) {
+            targetHz = GetNearestHz(module, targetHz, GetMaxAllowedHz(module, gContext.profile));
+        }
+
+        return targetHz;
     }
 
     void ApplyGpuFreqVoltRequest(u32 voltage, u32 hz) {
@@ -352,7 +369,7 @@ namespace clockManager {
         }
 
         voltage = ClampGpuVoltage(voltage);
-        u32 currentFreq = GetCurrentNearestGpuFrequency();
+        u32 currentFreq = GetCurrentNearestFrequency(HocClkModule_GPU);
         /* If not freq was provided, use the current freq. */
         if (hz == 0) {
             hz = currentFreq;
@@ -380,7 +397,7 @@ namespace clockManager {
 
         /* Update gpu frequency to actually use the voltage. */
         if (targetHz) {
-            board::SetHz(HocClkModule_GPU, GetCurrentNearestGpuFrequency());
+            board::SetHz(HocClkModule_GPU, GetCurrentNearestFrequency(HocClkModule_GPU));
         } else {
             /* If the target frequency is zero, we reset the frequency to ensure it gets updated even without any frequency override. */
             board::ResetToStockGpu();
@@ -392,14 +409,7 @@ namespace clockManager {
             board::PcvHijackGpuVolts(0);  // Reset to vMin
 
             u32 targetHz = gContext.overrideFreqs[HocClkModule_GPU];
-            if (!targetHz) {
-                targetHz = config::GetAutoClockHz(gContext.applicationId, HocClkModule_GPU, gContext.profile, false);
-                if (!targetHz) {
-                    targetHz = config::GetAutoClockHz(HOCCLK_GLOBAL_PROFILE_TID, HocClkModule_GPU, gContext.profile, false);
-                }
-            }
-            u32 maxHz = GetMaxAllowedHz(HocClkModule_GPU, gContext.profile);
-            u32 nearestHz = GetNearestHz(HocClkModule_GPU, targetHz, maxHz);
+            u32 nearestHz = GetNearestOverrideHz(HocClkModule_GPU);
 
             board::ResetToStockGpu();
             if (targetHz)
@@ -441,6 +451,17 @@ namespace clockManager {
         }
     }
 
+    /* Memory frequency gets reset when starting a game during boost mode, this reapplies it. */
+    void GameStartMemWar() {
+        u32 targetRamHz = GetNearestOverrideHz(HocClkModule_MEM);
+        u32 nearestFreq = GetCurrentNearestFrequency(HocClkModule_MEM);
+
+        if (targetRamHz != nearestFreq) {
+            ApplyGpuDvfs(targetRamHz);
+            board::SetHz(HocClkModule_MEM, targetRamHz);
+        }
+    }
+
     void SetClocks(bool isBoost) {
         std::uint32_t targetHz = 0;
         std::uint32_t maxHz = 0;
@@ -452,6 +473,7 @@ namespace clockManager {
         if (skipCpuDueToBoost) {
             board::SetHz(HocClkModule_CPU, board::GetHz(HocClkModule_CPU));
             prepareBoostExit = true;
+            GameStartMemWar();
             return;  // Return if we aren't overwriting boost mode
         }
 
@@ -460,14 +482,7 @@ namespace clockManager {
             prepareBoostExit = false;
         }
 
-        u32 ramTargetHz = gContext.overrideFreqs[HocClkModule_MEM];
-        if (!ramTargetHz) {
-            ramTargetHz = config::GetAutoClockHz(gContext.applicationId, HocClkModule_MEM, gContext.profile, false);
-            if (!ramTargetHz)
-                ramTargetHz = config::GetAutoClockHz(HOCCLK_GLOBAL_PROFILE_TID, HocClkModule_MEM, gContext.profile, false);
-        }
-        if (ramTargetHz)
-            ramTargetHz = GetNearestHz(HocClkModule_MEM, ramTargetHz, GetMaxAllowedHz(HocClkModule_MEM, gContext.profile));
+        u32 ramTargetHz = GetNearestOverrideHz(HocClkModule_MEM);
 
         bool returnRaw = false;  // Return a value scaled to MHz instead of raw value
         for (unsigned int module = 0; module < HocClkModule_EnumMax; module++) {
