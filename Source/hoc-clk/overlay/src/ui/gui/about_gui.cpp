@@ -20,6 +20,7 @@
 #include <tesla.hpp>
 #include <string>
 #include "cat.h"
+#include "main_gui.h"
 #include "ult_ext.h"
 
 // tsl::elm::ListItem* custRevItem = NULL;
@@ -176,13 +177,18 @@ void AboutGui::listUI()
     creditsItem = new tsl::elm::ListItem("Credits");
     creditsItem->setClickListener([](u64 keys) {
         if (keys & HidNpadButton_A) {
-            tsl::changeTo<CreditsSubMenu>();
+            tsl::swapTo<CreditsSubMenu>();
             return true;
         }
         return false;
     });
     creditsItem->setValue(R_ARROW);
     this->listElement->addItem(creditsItem);
+
+    if (!lastItemName.empty()) {
+        this->listElement->jumpToItem(lastItemName);
+    }
+    lastItemName = "";
 }
 
 std::string AboutGui::formatRamModule() {
@@ -327,7 +333,18 @@ class CreditsSubMenu : public AboutGui {
 
         bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                           HidAnalogStickState rightJoyStick) override {
+            if (keysDown & KEY_B) {
+                triggerExitFeedback();
+                lastItemName = "Credits";
+                tsl::swapTo<AboutGui>();
+                return true;
+            }
             return false;
+        }
+
+        /* This is needed because AboutGui::Refresh() dereferences pointers that get freed after swapTo is called. */
+        void refresh() override {
+            BaseMenuGui::refresh();
         }
 
     protected:

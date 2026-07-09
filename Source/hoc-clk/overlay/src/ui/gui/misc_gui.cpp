@@ -649,7 +649,7 @@ void MiscGui::listUI() {
     tsl::elm::ListItem *sysmoduleSettingsSubMenu = new tsl::elm::ListItem("General Settings");
     sysmoduleSettingsSubMenu->setClickListener([](u64 keys) {
         if (keys & HidNpadButton_A) {
-            tsl::changeTo<GeneralSettingsSubMenuGui>();
+            tsl::swapTo<GeneralSettingsSubMenuGui>();
             return true;
         }
         return false;
@@ -660,7 +660,7 @@ void MiscGui::listUI() {
     tsl::elm::ListItem *governorSettingsSubMenu = new tsl::elm::ListItem("Governor Settings");
     governorSettingsSubMenu->setClickListener([](u64 keys) {
         if (keys & HidNpadButton_A) {
-            tsl::changeTo<GovernorSettingsSubMenuGui>();
+            tsl::swapTo<GovernorSettingsSubMenuGui>();
             return true;
         }
         return false;
@@ -671,7 +671,7 @@ void MiscGui::listUI() {
     tsl::elm::ListItem *safetySubmenu = new tsl::elm::ListItem("Safety Settings");
     safetySubmenu->setClickListener([](u64 keys) {
         if (keys & HidNpadButton_A) {
-            tsl::changeTo<SafetySubMenuGui>();
+            tsl::swapTo<SafetySubMenuGui>();
             return true;
         }
         return false;
@@ -682,7 +682,7 @@ void MiscGui::listUI() {
     tsl::elm::ListItem *ramSubmenu = new tsl::elm::ListItem("RAM Settings");
     ramSubmenu->setClickListener([](u64 keys) {
         if (keys & HidNpadButton_A) {
-            tsl::changeTo<RamSubmenuGui>();
+            tsl::swapTo<RamSubmenuGui>();
             return true;
         }
         return false;
@@ -693,7 +693,7 @@ void MiscGui::listUI() {
     tsl::elm::ListItem *cpuSubmenu = new tsl::elm::ListItem("CPU Settings");
     cpuSubmenu->setClickListener([](u64 keys) {
         if (keys & HidNpadButton_A) {
-            tsl::changeTo<CpuSubmenuGui>();
+            tsl::swapTo<CpuSubmenuGui>();
             return true;
         }
         return false;
@@ -704,7 +704,7 @@ void MiscGui::listUI() {
     tsl::elm::ListItem *gpuSubmenu = new tsl::elm::ListItem("GPU Settings");
     gpuSubmenu->setClickListener([](u64 keys) {
         if (keys & HidNpadButton_A) {
-            tsl::changeTo<GpuSubmenuGui>();
+            tsl::swapTo<GpuSubmenuGui>();
             return true;
         }
         return false;
@@ -715,7 +715,7 @@ void MiscGui::listUI() {
     tsl::elm::ListItem *displaySubMenu = new tsl::elm::ListItem("Display Settings");
     displaySubMenu->setClickListener([](u64 keys) {
         if (keys & HidNpadButton_A) {
-            tsl::changeTo<DisplaySubMenuGui>();
+            tsl::swapTo<DisplaySubMenuGui>();
             return true;
         }
         return false;
@@ -727,7 +727,7 @@ void MiscGui::listUI() {
         tsl::elm::ListItem *experimentalSubMenu = new tsl::elm::ListItem("Experimental Settings");
         experimentalSubMenu->setClickListener([](u64 keys) {
             if (keys & HidNpadButton_A) {
-                tsl::changeTo<ExperimentalSettingsSubMenuGui>();
+                tsl::swapTo<ExperimentalSettingsSubMenuGui>();
                 return true;
             }
             return false;
@@ -735,6 +735,11 @@ void MiscGui::listUI() {
         experimentalSubMenu->setValue(R_ARROW);
         this->listElement->addItem(experimentalSubMenu);
     }
+
+    if (!lastItemName.empty()) {
+        this->listElement->jumpToItem(lastItemName);
+    }
+    lastItemName = "";
 }
 
 class GeneralSettingsSubMenuGui : public MiscGui {
@@ -744,6 +749,12 @@ class GeneralSettingsSubMenuGui : public MiscGui {
 
     bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                       HidAnalogStickState rightJoyStick) override {
+        if (keysDown & KEY_B) {
+            triggerExitFeedback();
+            lastItemName = "General Settings";
+            tsl::swapTo<MiscGui>();
+            return true;
+        }
         return false;
     }
 
@@ -799,6 +810,12 @@ class ExperimentalSettingsSubMenuGui : public MiscGui {
 
     bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                       HidAnalogStickState rightJoyStick) override {
+        if (keysDown & KEY_B) {
+            triggerExitFeedback();
+            lastItemName = "Experimental Settings";
+            tsl::swapTo<MiscGui>();
+            return true;
+        }
         return false;
     }
 
@@ -918,6 +935,12 @@ class GovernorSettingsSubMenuGui : public MiscGui {
 
     bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                       HidAnalogStickState rightJoyStick) override {
+        if (keysDown & KEY_B) {
+            triggerExitFeedback();
+            lastItemName = "Governor Settings";
+            tsl::swapTo<MiscGui>();
+            return true;
+        }
         return false;
     }
 
@@ -948,6 +971,12 @@ class DisplaySubMenuGui : public MiscGui {
 
     bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                       HidAnalogStickState rightJoyStick) override {
+        if (keysDown & KEY_B) {
+            triggerExitFeedback();
+            lastItemName = "Display Settings";
+            tsl::swapTo<MiscGui>();
+            return true;
+        }
         return false;
     }
 
@@ -1002,6 +1031,12 @@ class SafetySubMenuGui : public MiscGui {
 
     bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                       HidAnalogStickState rightJoyStick) override {
+        if (keysDown & KEY_B) {
+            triggerExitFeedback();
+            lastItemName = "Safety Settings";
+            tsl::swapTo<MiscGui>();
+            return true;
+        }
         return false;
     }
 
@@ -1031,6 +1066,12 @@ class RamSubmenuGui : public MiscGui {
 
     bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                       HidAnalogStickState rightJoyStick) override {
+        if (keysDown & KEY_B) {
+            triggerExitFeedback();
+            lastItemName = "RAM Settings";
+            tsl::swapTo<MiscGui>();
+            return true;
+        }
         return false;
     }
 
@@ -1230,7 +1271,7 @@ class RamSubmenuGui : public MiscGui {
         tsl::elm::ListItem *latenciesSubmenu = new tsl::elm::ListItem("RAM Latency Editor");
         latenciesSubmenu->setClickListener([](u64 keys) {
             if (keys & HidNpadButton_A) {
-                tsl::changeTo<RamLatenciesSubmenuGui>();
+                tsl::swapTo<RamLatenciesSubmenuGui>();
                 return true;
             }
             return false;
@@ -1241,7 +1282,7 @@ class RamSubmenuGui : public MiscGui {
         tsl::elm::ListItem *timingsSubmenu = new tsl::elm::ListItem("RAM Timing Reductions");
         timingsSubmenu->setClickListener([](u64 keys) {
             if (keys & HidNpadButton_A) {
-                tsl::changeTo<RamTimingsSubmenuGui>();
+                tsl::swapTo<RamTimingsSubmenuGui>();
                 return true;
             }
             return false;
@@ -1253,7 +1294,7 @@ class RamSubmenuGui : public MiscGui {
             tsl::elm::ListItem *socVoltageTable = new tsl::elm::ListItem("SOC Voltage Table");
             socVoltageTable->setClickListener([](u64 keys) {
                 if (keys & HidNpadButton_A) {
-                    tsl::changeTo<SocCustomTableSubmenuGui>();
+                    tsl::swapTo<SocCustomTableSubmenuGui>();
                     return true;
                 }
                 return false;
@@ -1261,6 +1302,11 @@ class RamSubmenuGui : public MiscGui {
             socVoltageTable->setValue(R_ARROW);
             this->listElement->addItem(socVoltageTable);
         }
+
+        if (!lastItemName.empty()) {
+            this->listElement->jumpToItem(lastItemName);
+        }
+        lastItemName = "";
     }
 };
 
@@ -1271,6 +1317,12 @@ class RamTimingsSubmenuGui : public MiscGui {
 
     bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                       HidAnalogStickState rightJoyStick) override {
+        if (keysDown & KEY_B) {
+            triggerExitFeedback();
+            lastItemName = "RAM Timing Reductions";
+            tsl::swapTo<RamSubmenuGui>();
+            return true;
+        }
         return false;
     }
 
@@ -1523,6 +1575,12 @@ class RamLatenciesSubmenuGui : public MiscGui {
 
     bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                       HidAnalogStickState rightJoyStick) override {
+        if (keysDown & KEY_B) {
+            triggerExitFeedback();
+            lastItemName = "RAM Latency Editor";
+            tsl::swapTo<RamSubmenuGui>();
+            return true;
+        }
         return false;
     }
 
@@ -2029,6 +2087,12 @@ class CpuSubmenuGui : public MiscGui {
 
     bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                       HidAnalogStickState rightJoyStick) override {
+        if (keysDown & KEY_B) {
+            triggerExitFeedback();
+            lastItemName = "CPU Settings";
+            tsl::swapTo<MiscGui>();
+            return true;
+        }
         return false;
     }
 
@@ -2192,6 +2256,12 @@ class GpuSubmenuGui : public MiscGui {
 
     bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                       HidAnalogStickState rightJoyStick) override {
+        if (keysDown & KEY_B) {
+            triggerExitFeedback();
+            lastItemName = "GPU Settings";
+            tsl::swapTo<MiscGui>();
+            return true;
+        }
         return false;
     }
 
@@ -2325,13 +2395,18 @@ class GpuSubmenuGui : public MiscGui {
         tsl::elm::ListItem *customTableSubmenu = new tsl::elm::ListItem("GPU Voltage Table");
         customTableSubmenu->setClickListener([](u64 keys) {
             if (keys & HidNpadButton_A) {
-                tsl::changeTo<GpuCustomTableSubmenuGui>();
+                tsl::swapTo<GpuCustomTableSubmenuGui>();
                 return true;
             }
             return false;
         });
         customTableSubmenu->setValue(R_ARROW);
         this->listElement->addItem(customTableSubmenu);
+
+        if (!lastItemName.empty()) {
+            this->listElement->jumpToItem(lastItemName);
+        }
+        lastItemName = "";
     }
 };
 
@@ -2342,6 +2417,12 @@ class GpuCustomTableSubmenuGui : public MiscGui {
 
     bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                       HidAnalogStickState rightJoyStick) override {
+        if (keysDown & KEY_B) {
+            triggerExitFeedback();
+            lastItemName = "GPU Voltage Table";
+            tsl::swapTo<GpuSubmenuGui>();
+            return true;
+        }
         return false;
     }
 
@@ -2582,6 +2663,12 @@ class SocCustomTableSubmenuGui : public MiscGui {
 
     bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick,
                       HidAnalogStickState rightJoyStick) override {
+        if (keysDown & KEY_B) {
+            triggerExitFeedback();
+            lastItemName = "SOC Voltage Table";
+            tsl::swapTo<RamSubmenuGui>();
+            return true;
+        }
         return false;
     }
 
