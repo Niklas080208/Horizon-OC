@@ -454,6 +454,10 @@ namespace clockManager {
     /* Memory frequency gets reset when starting a game during boost mode, this reapplies it. */
     void GameStartMemWar() {
         u32 targetRamHz = GetNearestOverrideHz(HocClkModule_MEM);
+        if (!targetRamHz) {
+            return;
+        }
+
         u32 nearestFreq = GetCurrentNearestFrequency(HocClkModule_MEM);
 
         if (targetRamHz != nearestFreq) {
