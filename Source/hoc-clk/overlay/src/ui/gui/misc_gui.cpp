@@ -2134,27 +2134,23 @@ class CpuSubmenuGui : public MiscGui {
                             &mCpuVoltThresholds, {}, {}, false, true);
 
             std::vector<NamedValue> maxClkOptions = {
-                NamedValue("1963 MHz", 1963500), NamedValue("2091 MHz", 2091000), NamedValue("2193 MHz", 2193000), NamedValue("2295 MHz", 2295000),
-                NamedValue("2397 MHz", 2397000), NamedValue("2499 MHz", 2499000), NamedValue("2601 MHz", 2601000), NamedValue("2703 MHz", 2703000),
+                NamedValue("1963 MHz", 1963500, "Rating"), NamedValue("2091 MHz", 2091000), NamedValue("2193 MHz", 2193000), NamedValue("2295 MHz", 2295000),
+                NamedValue("2397 MHz", 2397000, "Safe Max"), NamedValue("2499 MHz", 2499000, "Unsafe Max"), NamedValue("2601 MHz", 2601000), NamedValue("2703 MHz", 2703000, "Absolute Max"),
             };
 
             addConfigButton(KipConfigValue_marikoCpuMaxClock, "CPU Max Clock", ValueRange(0, 0, 1, "", 1), "CPU Max Clock",
                             this->configList->values[KipConfigValue_marikoCpuUVHigh] ? &mCpuClockThresholdsUV : &mCpuClockThresholds, {},
                             maxClkOptions, false, true);
 
-            std::vector<NamedValue> ClkOptions = {
-                NamedValue("1963 MHz", 1963500), NamedValue("2091 MHz", 2091000), NamedValue("2193 MHz", 2193000), NamedValue("2295 MHz", 2295000),
-                NamedValue("2397 MHz", 2397000), NamedValue("2499 MHz", 2499000), NamedValue("2601 MHz", 2601000), NamedValue("2703 MHz", 2703000),
-            };
-            std::vector<NamedValue> ClkOptionsRamOc = {
+            std::vector<NamedValue> clkOptionsRamOc = {
                 NamedValue("1122 MHz", 1122000), NamedValue("1224 MHz", 1224000), NamedValue("1326 MHz", 1326000), NamedValue("1428 MHz", 1428000),
-                NamedValue("1581 MHz", 1581000), NamedValue("1683 MHz", 1683000), NamedValue("1785 MHz", 1785000), NamedValue("1887 MHz", 1887000),
+                NamedValue("1581 MHz", 1581000), NamedValue("1683 MHz", 1683000, "Default"), NamedValue("1785 MHz", 1785000), NamedValue("1887 MHz", 1887000),
                 NamedValue("1963 MHz", 1963500), NamedValue("2091 MHz", 2091000), NamedValue("2193 MHz", 2193000), NamedValue("2295 MHz", 2295000),
                 NamedValue("2397 MHz", 2397000), NamedValue("2499 MHz", 2499000), NamedValue("2601 MHz", 2601000), NamedValue("2703 MHz", 2703000),
             };
 
             addConfigButton(KipConfigValue_marikoCpuBoostClock, "CPU Boost Clock", ValueRange(0, 0, 1, "", 1), "CPU Boost Clock",
-                            this->configList->values[KipConfigValue_marikoCpuUVHigh] ? &mCpuClockThresholdsUV : &mCpuClockThresholds, {}, ClkOptions,
+                            this->configList->values[KipConfigValue_marikoCpuUVHigh] ? &mCpuClockThresholdsUV : &mCpuClockThresholds, {}, maxClkOptions,
                             false, true);
 
             std::vector<NamedValue> emcMaxClock = {
@@ -2214,7 +2210,7 @@ class CpuSubmenuGui : public MiscGui {
             };
             addConfigToggle(HocClkConfigValue_AutoRAMCPUOverclock, "Auto CPU RAM OC");
             addConfigButton(HocClkConfigValue_AutoRamCpuCpuOCFreq, "Auto CPU RAM OC CPU clock", ValueRange(0, 0, 1, "", 1), "CPU Clock",
-                            &thresholdsDisabled, {}, ClkOptionsRamOc, false, false);
+                            &thresholdsDisabled, {}, clkOptionsRamOc, false, false);
             addConfigButton(HocClkConfigValue_AutoRamCpuRamOCThreshold, "Auto CPU RAM OC Threshold", ValueRange(0, 0, 1, "", 1), "RAM Clock",
                             &thresholdsDisabled, {}, emcMaxClock, false, false);
         } else {
@@ -2230,7 +2226,7 @@ class CpuSubmenuGui : public MiscGui {
                             &eCpuVoltThresholds, {}, {}, false, true);
 
             std::vector<NamedValue> maxClkOptions = {
-                NamedValue("1785 MHz", 1785), NamedValue("1887 MHz", 1887), NamedValue("1989 MHz", 1989), NamedValue("2091 MHz", 2091),
+                NamedValue("1785 MHz", 1785, "Rating"), NamedValue("1887 MHz", 1887), NamedValue("1989 MHz", 1989), NamedValue("2091 MHz", 2091),
                 NamedValue("2193 MHz", 2193), NamedValue("2295 MHz", 2295), NamedValue("2397 MHz", 2397),
             };
             ValueThresholds eCpuMaxClockThresholds(1785, 2091);
