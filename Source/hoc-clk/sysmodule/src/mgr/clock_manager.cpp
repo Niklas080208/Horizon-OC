@@ -339,9 +339,9 @@ namespace clockManager {
 
     u32 GetCurrentNearestFrequency(HocClkModule module) {
         /* Target freq may not match actual frequency so don't even bother with that. */
-        u32 gpuHz = board::GetHz(module);
+        u32 hz = board::GetHz(module);
         u32 maxHz = GetMaxAllowedHz(module, gContext.profile);
-        return GetNearestHz(module, gpuHz, maxHz);
+        return GetNearestHz(module, hz, maxHz);
     }
 
     u32 GetNearestOverrideHz(HocClkModule module) {
