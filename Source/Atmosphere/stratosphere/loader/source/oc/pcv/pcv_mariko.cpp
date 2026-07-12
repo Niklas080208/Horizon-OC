@@ -365,6 +365,8 @@ namespace ams::ldr::hoc::pcv::mariko {
 
         #define GET_CYCLE_CEIL(PARAM) u32(CEIL(double(PARAM) / tCK_avg))
 
+        /* EMC timings. */
+
         /* Ram power down       */
         /* B31: DRAM_CLKSTOP_PD */
         /* B30: DRAM_CLKSTOP_SR */
@@ -446,6 +448,7 @@ namespace ams::ldr::hoc::pcv::mariko {
         WRITE_PARAM_ALL_REG(table, emc_cmd_brlshft_2, 0x24);
         WRITE_PARAM_ALL_REG(table, emc_cmd_brlshft_3, 0x24);
 
+        /* MC timings. */
         /* This needs some clean up. */
         constexpr double MC_ARB_DIV = 4.0;
         constexpr u32 MC_ARB_SFA    = 2;
@@ -488,7 +491,18 @@ namespace ams::ldr::hoc::pcv::mariko {
         da_covers |= (w_cover << 16);
         table->burst_mc_regs.mc_emem_arb_da_covers = da_covers;
 
-        table->burst_mc_regs.mc_emem_arb_misc0 = (table->burst_mc_regs.mc_emem_arb_misc0 & 0xFFE08000) | (table->burst_mc_regs.mc_emem_arb_timing_rc + 1);
+        constexpr u32 AtomsPerDvfsPulse             = 0x7;
+        constexpr u32 McEmcSameFreq                 = 0x0;
+        /* On certain frequencies (2966, 3100, 3133 and 3200 MHz), ExpiringSoonSlackThreshold has a value of 0x12. */
+        /* But 0x13 is good enough for now. */
+        constexpr u32 ExpiringSoonSlackThreshold    = 0x13;
+        const     u32 PriorityInversionIsoThreshold = GET_CYCLE_CEIL(7.5);
+        constexpr u32 EmcReqB2bXfer                 = 0x0;
+        const     u32 PriorityInversionThreshold    = GET_CYCLE_CEIL(22.5);
+        const     u32 Bc2aaHoldoffThreshold         = table->burst_mc_regs.mc_emem_arb_timing_rc + 1;
+
+        const u32 mc_emem_arb_misc0 = (AtomsPerDvfsPulse << 28) | (McEmcSameFreq << 27) | (ExpiringSoonSlackThreshold << 21) | (PriorityInversionIsoThreshold << 16) | (EmcReqB2bXfer << 15) | (PriorityInversionThreshold << 8) | (Bc2aaHoldoffThreshold << 0);
+        table->burst_mc_regs.mc_emem_arb_misc0 = mc_emem_arb_misc0;
 
         table->la_scale_regs.mc_mll_mpcorer_ptsa_rate = 0x115;
 
@@ -531,7 +545,7 @@ namespace ams::ldr::hoc::pcv::mariko {
         table->la_scale_regs.mc_latency_allowance_vi2_0     =              (table->la_scale_regs.mc_latency_allowance_vi2_0     & Mask2)    |  allowance1;
 
         table->dram_timings.t_rp  = tRP_values[0];
-        const u32 tRFCabStock = tRFC_values[0] * 2;
+        const u32 tRFCabStock     = tRFC_values[0] * 2;
         table->dram_timings.t_rfc = tRFCabStock;
 
         table->dram_timings.rl = RL;
