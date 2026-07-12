@@ -2721,6 +2721,8 @@ class SocCustomTableSubmenuGui : public MiscGui {
         addConfigButton(KipConfigValue_g_soc_volt_3133000, "3133MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &voltageThresholds, {}, socVolts, false, true);
         addConfigButton(KipConfigValue_g_soc_volt_3166000, "3166MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &voltageThresholds, {}, socVolts, false, true);
         addConfigButton(KipConfigValue_g_soc_volt_3200000, "3200MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &voltageThresholds, {}, socVolts, false, true);
+        addConfigButton(KipConfigValue_g_soc_volt_3266000, "3266MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &voltageThresholds, {}, socVolts, false, true);
+        addConfigButton(KipConfigValue_g_soc_volt_3333000, "3333MHz", ValueRange(0, 0, 0, "0", 1), "Voltage", &voltageThresholds, {}, socVolts, false, true);
     }
 };
 

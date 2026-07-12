@@ -224,6 +224,8 @@ typedef enum {
     KipConfigValue_g_soc_volt_3133000,
     KipConfigValue_g_soc_volt_3166000,
     KipConfigValue_g_soc_volt_3200000,
+    KipConfigValue_g_soc_volt_3266000,
+    KipConfigValue_g_soc_volt_3333000,
 
     KipConfigValue_t6_tRTW_fine_tune,
     KipConfigValue_t7_tWTR_fine_tune,
@@ -542,6 +544,8 @@ static inline const char* hocclkFormatConfigValue(HocClkConfigValue val, bool pr
         case KipConfigValue_g_soc_volt_3133000: return pretty ? "Mariko SOC Volt 3133 MHz" : "g_soc_volt_3133000";
         case KipConfigValue_g_soc_volt_3166000: return pretty ? "Mariko SOC Volt 3166 MHz" : "g_soc_volt_3166000";
         case KipConfigValue_g_soc_volt_3200000: return pretty ? "Mariko SOC Volt 3200 MHz" : "g_soc_volt_3200000";
+        case KipConfigValue_g_soc_volt_3266000: return pretty ? "Mariko SOC Volt 3266 MHz" : "g_soc_volt_3266000";
+        case KipConfigValue_g_soc_volt_3333000: return pretty ? "Mariko SOC Volt 3333 MHz" : "g_soc_volt_3333000";
 
         case KipCrc32:
             return pretty ? "CRC32" : "crc32";
@@ -765,6 +769,8 @@ static inline uint64_t hocclkValidConfigValue(HocClkConfigValue val, uint64_t in
         case KipConfigValue_g_soc_volt_3133000:
         case KipConfigValue_g_soc_volt_3166000:
         case KipConfigValue_g_soc_volt_3200000:
+        case KipConfigValue_g_soc_volt_3266000:
+        case KipConfigValue_g_soc_volt_3333000:
         case KipConfigValue_eristaCpuVmin:
         case KipConfigValue_eristaCpuUnlock:
         case KipConfigValue_t6_tRTW_fine_tune:
