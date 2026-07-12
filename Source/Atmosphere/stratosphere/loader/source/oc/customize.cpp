@@ -89,7 +89,7 @@ volatile CustomizeTable C = {
 },
 
 .eristaCpuUV      = 0,
-.eristaCpuVmin    = 800,
+.eristaCpuVmin    = 825,
 .eristaCpuMaxVolt = 1200,
 /* Unlocks up to 2397 Mhz CPU, usage is not recommended. */
 .eristaCpuUnlock  = DISABLED,

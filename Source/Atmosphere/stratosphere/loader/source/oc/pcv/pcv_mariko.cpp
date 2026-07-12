@@ -365,8 +365,6 @@ namespace ams::ldr::hoc::pcv::mariko {
 
         #define GET_CYCLE_CEIL(PARAM) u32(CEIL(double(PARAM) / tCK_avg))
 
-        /* EMC timings. */
-
         /* Ram power down       */
         /* B31: DRAM_CLKSTOP_PD */
         /* B30: DRAM_CLKSTOP_SR */
@@ -448,7 +446,6 @@ namespace ams::ldr::hoc::pcv::mariko {
         WRITE_PARAM_ALL_REG(table, emc_cmd_brlshft_2, 0x24);
         WRITE_PARAM_ALL_REG(table, emc_cmd_brlshft_3, 0x24);
 
-        /* MC timings. */
         /* This needs some clean up. */
         constexpr double MC_ARB_DIV = 4.0;
         constexpr u32 MC_ARB_SFA    = 2;
