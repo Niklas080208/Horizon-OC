@@ -324,9 +324,7 @@ namespace ams::ldr::hoc::pcv::erista {
 
         constexpr u32 AtomsPerDvfsPulse             = 0x7;
         constexpr u32 McEmcSameFreq                 = 0x0;
-        /* On certain frequencies (2966, 3100, 3133 and 3200 MHz), ExpiringSoonSlackThreshold has a value of 0x12. */
-        /* But 0x13 is good enough for now. */
-        constexpr u32 ExpiringSoonSlackThreshold    = 0x13;
+        constexpr u32 ExpiringSoonSlackThreshold    = 0xC; /* 0xC? */
         const     u32 PriorityInversionIsoThreshold = GET_CYCLE_CEIL(7.5);
         constexpr u32 EmcReqB2bXfer                 = 0x0;
         const     u32 PriorityInversionThreshold    = GET_CYCLE_CEIL(22.5);
@@ -704,8 +702,6 @@ namespace ams::ldr::hoc::pcv::erista {
                 }
             }
         }
-
-        // ViewLog();
 
         for (auto &entry : patches) {
             LOGGING("%s Count: %zu\n", entry.description, entry.patched_count);
