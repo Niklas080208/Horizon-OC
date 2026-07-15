@@ -86,8 +86,6 @@ struct CustomizeTable {
     u32 t7_tWTR;
     u32 t8_tREFI;
 
-    u32 t2_tRP_cap;
-
     u32 timingEmcTbreak;
     u32 low_t1_tRCD;
     u32 low_t2_tRP;

@@ -1424,12 +1424,10 @@ class RamTimingsSubmenuGui : public MiscGui {
                     const s32 t7 = (s32)cfgPtr->values[KipConfigValue_t7_tWTR];
                     const s32 lt6 = (s32)cfgPtr->values[KipConfigValue_low_t6_tRTW];
                     const s32 lt7 = (s32)cfgPtr->values[KipConfigValue_low_t7_tWTR];
-                    const s32 t2c = (s32)cfgPtr->values[KipConfigValue_t2_tRP_cap];
                     const uint32_t tbk = (uint32_t)cfgPtr->values[KipConfigValue_timingEmcTbreak];
 
                     const tsl::Color cT6 = tsl::Color(4, 14, 15, 15);
                     const tsl::Color cT7 = tsl::Color(15, 9, 2, 15);
-                    const tsl::Color cT2 = tsl::Color(12, 4, 15, 15);
                     const tsl::Color cAxis = tsl::Color(5, 5, 5, 15);
                     const tsl::Color cTbk = tsl::Color(7, 7, 7, 10);
 
@@ -1495,12 +1493,6 @@ class RamTimingsSubmenuGui : public MiscGui {
                     drawTimingLine(lt6, t6, cT6);
                     drawTimingLine(lt7, t7, cT7);
 
-                    // t2 tRP cap: constant line
-                    s32 yT2 = valY(t2c) + 1;
-                    renderer->drawRect(gx, yT2, gw, 2, cT2);
-                    renderer->drawCircle(gx, yT2 + 1, 3, true, cT2);
-                    renderer->drawCircle(gx + gw - 1, yT2 + 1, 3, true, cT2);
-
                     // X-axis ruler with sideways bitmap-font labels
                     static const uint8_t kDigBmp[10][5] = {
                         { 7, 5, 5, 5, 7 }, { 6, 2, 2, 2, 7 }, { 7, 1, 7, 4, 7 }, { 7, 1, 3, 1, 7 }, { 5, 5, 7, 1, 1 },
@@ -1537,15 +1529,12 @@ class RamTimingsSubmenuGui : public MiscGui {
                     renderer->drawString("t6 tRTW", false, gx + 17, ly + 5, 12, cT6);
                     renderer->drawRect(gx + 80, ly, 14, 3, cT7);
                     renderer->drawString("t7 tWTR", false, gx + 97, ly + 5, 12, cT7);
-                    renderer->drawRect(gx + 165, ly, 14, 3, cT2);
-                    renderer->drawString("t2 cap", false, gx + 182, ly + 5, 12, cT2);
                 });
                 tbreakGraph->setBoundaries(0, 0, tsl::cfg::FramebufferWidth, 150);
                 this->listElement->addItem(tbreakGraph);
             }
 
-            addConfigButton(KipConfigValue_timingEmcTbreak, "RAM-Timing tBreak", ValueRange(0, 1, 1, "", 1), "tBreak", &thresholdsDisabled, {},
-                            timingTbreakFreqs, false, true);
+            addConfigButton(KipConfigValue_timingEmcTbreak, "RAM-Timing tBreak", ValueRange(0, 1, 1, "", 1), "tBreak", &thresholdsDisabled, {}, timingTbreakFreqs, false, true);
             addConfigTrackbar(KipConfigValue_low_t1_tRCD, "Low t1 tRCD", ValueRange(0, 7, 1));
             addConfigTrackbar(KipConfigValue_low_t2_tRP, "Low t2 tRP", ValueRange(0, 7, 1));
             addConfigTrackbar(KipConfigValue_low_t3_tRAS, "Low t3 tRAS", ValueRange(0, 9, 1));
@@ -1559,7 +1548,6 @@ class RamTimingsSubmenuGui : public MiscGui {
                 spacer->setBoundaries(0, 0, tsl::cfg::FramebufferWidth, 8);
                 this->listElement->addItem(spacer);
             }
-            addConfigTrackbar(KipConfigValue_t2_tRP_cap, "1333WL t2 RP Cap", ValueRange(0, 8, 1));
         }
         addMappedConfigTrackbar(KipConfigValue_t6_tRTW_fine_tune, "t6 tRTW Fine Tune", { 0xFFFFFFFEu, 0xFFFFFFFFu, 0u, 1u, 2u },
                                 { "-2", "-1", " 0", "+1", "+2" });

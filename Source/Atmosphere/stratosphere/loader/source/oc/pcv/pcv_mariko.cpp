@@ -35,7 +35,7 @@ namespace ams::ldr::hoc::pcv::mariko {
             }
         }
 
-        /* Default value is 800mV. */
+        /* Default value is 1050mV. */
         if (C.marikoGpuVmax) {
             PATCH_OFFSET(ptr + 1, C.marikoGpuVmax);
         }
@@ -488,17 +488,26 @@ namespace ams::ldr::hoc::pcv::mariko {
         da_covers |= (w_cover << 16);
         table->burst_mc_regs.mc_emem_arb_da_covers = da_covers;
 
-        constexpr u32 AtomsPerDvfsPulse             = 0x7;
-        constexpr u32 McEmcSameFreq                 = 0x0;
-        /* On certain frequencies (2966, 3100, 3133 and 3200 MHz), ExpiringSoonSlackThreshold has a value of 0x12. */
-        /* But 0x13 is good enough for now. */
-        constexpr u32 ExpiringSoonSlackThreshold    = 0x13;
-        const     u32 PriorityInversionIsoThreshold = GET_CYCLE_CEIL(7.5);
-        constexpr u32 EmcReqB2bXfer                 = 0x0;
-        const     u32 PriorityInversionThreshold    = GET_CYCLE_CEIL(22.5);
-        const     u32 Bc2aaHoldoffThreshold         = table->burst_mc_regs.mc_emem_arb_timing_rc + 1;
+        constexpr u32 AtomsPerDvfsPulse      = 0x7;
+        constexpr u32 McEmcSameFreq          = 0x0;
+        const u32 expiringSoonSlackThreshold = [&] {
+            switch (table->rate_khz) {
+                case 2966000:
+                case 3100000:
+                case 3133000:
+                case 3200000:
+                    return 0x12u;
+                default:
+                    return 0x13u;
+            }
+        }();
 
-        const u32 mc_emem_arb_misc0 = (AtomsPerDvfsPulse << 28) | (McEmcSameFreq << 27) | (ExpiringSoonSlackThreshold << 21) | (PriorityInversionIsoThreshold << 16) | (EmcReqB2bXfer << 15) | (PriorityInversionThreshold << 8) | (Bc2aaHoldoffThreshold << 0);
+        const     u32 priorityInversionIsoThreshold = GET_CYCLE_CEIL(7.5);
+        constexpr u32 EmcReqB2bXfer                 = 0x0;
+        const     u32 priorityInversionThreshold    = GET_CYCLE_CEIL(22.5);
+        const     u32 bc2aaHoldoffThreshold         = table->burst_mc_regs.mc_emem_arb_timing_rc + 1;
+
+        const u32 mc_emem_arb_misc0 = (AtomsPerDvfsPulse << 28) | (McEmcSameFreq << 27) | (expiringSoonSlackThreshold << 21) | (priorityInversionIsoThreshold << 16) | (EmcReqB2bXfer << 15) | (priorityInversionThreshold << 8) | (bc2aaHoldoffThreshold << 0);
         table->burst_mc_regs.mc_emem_arb_misc0 = mc_emem_arb_misc0;
 
         table->la_scale_regs.mc_mll_mpcorer_ptsa_rate = 0x115;
@@ -934,14 +943,11 @@ namespace ams::ldr::hoc::pcv::mariko {
         } __attribute__((packed)) cmd;
 
         I2cSession _session;
-        Result res = i2cOpenSession(&_session, dev);
-        if (R_FAILED(res)) {
-            return res;
-        }
+        R_TRY(i2cOpenSession(&_session, dev));
 
-        cmd.reg = reg;
-        cmd.val = val;
-        res     = i2csessionSendAuto(&_session, &cmd, sizeof(cmd), I2cTransactionOption_All);
+        cmd.reg    = reg;
+        cmd.val    = val;
+        Result res = i2csessionSendAuto(&_session, &cmd, sizeof(cmd), I2cTransactionOption_All);
         i2csessionClose(&_session);
         return res;
     }
@@ -977,10 +983,6 @@ namespace ams::ldr::hoc::pcv::mariko {
         i2cInitialize();
         Result resultI2C = I2cSet_U8(I2cDevice_Max77812_2, 0x25, (emc_uv - uv_min) / uv_step);
         i2cExit();
-
-        if (R_SUCCEEDED(resultI2C)) {
-            R_SUCCEED();
-        }
 
         return resultI2C;
     }

@@ -320,13 +320,6 @@ std::vector<std::string> ConfigInfoStrings(HocClkConfigValue val, bool isMariko,
                 "Write To Read (Low bracket)",
                 "Default: 0"
             };
-        case KipConfigValue_t2_tRP_cap:
-            return {
-                "Cap for t2 when 1333WL is used.",
-                "The default value is sufficient for most RAMs but some may need a lower value",
-                "Default: 2"
-            };
-
         case KipConfigValue_t6_tRTW_fine_tune:
             return {
                 "Fine-tunes the raw calculation of t6",

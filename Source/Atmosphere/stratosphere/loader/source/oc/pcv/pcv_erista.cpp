@@ -324,13 +324,13 @@ namespace ams::ldr::hoc::pcv::erista {
 
         constexpr u32 AtomsPerDvfsPulse             = 0x7;
         constexpr u32 McEmcSameFreq                 = 0x0;
-        constexpr u32 ExpiringSoonSlackThreshold    = 0xC; /* 0xC? */
-        const     u32 PriorityInversionIsoThreshold = GET_CYCLE_CEIL(7.5);
+        constexpr u32 ExpiringSoonSlackThreshold    = 0xC;
+        const     u32 priorityInversionIsoThreshold = GET_CYCLE_CEIL(7.5);
         constexpr u32 EmcReqB2bXfer                 = 0x0;
-        const     u32 PriorityInversionThreshold    = GET_CYCLE_CEIL(22.5);
-        const     u32 Bc2aaHoldoffThreshold         = table->burst_mc_regs.mc_emem_arb_timing_rc + 1;
+        const     u32 priorityInversionThreshold    = GET_CYCLE_CEIL(22.5);
+        const     u32 bc2aaHoldoffThreshold         = table->burst_mc_regs.mc_emem_arb_timing_rc + 1;
 
-        const u32 mc_emem_arb_misc0 = (AtomsPerDvfsPulse << 28) | (McEmcSameFreq << 27) | (ExpiringSoonSlackThreshold << 21) | (PriorityInversionIsoThreshold << 16) | (EmcReqB2bXfer << 15) | (PriorityInversionThreshold << 8) | (Bc2aaHoldoffThreshold << 0);
+        const u32 mc_emem_arb_misc0 = (AtomsPerDvfsPulse << 28) | (McEmcSameFreq << 27) | (ExpiringSoonSlackThreshold << 21) | (priorityInversionIsoThreshold << 16) | (EmcReqB2bXfer << 15) | (priorityInversionThreshold << 8) | (bc2aaHoldoffThreshold << 0);
         table->burst_mc_regs.mc_emem_arb_misc0 = mc_emem_arb_misc0;
 
         u32 mpcorer_ptsa_rate = MIN(static_cast<u32>(227), (table->rate_khz / 1600000) * 208);

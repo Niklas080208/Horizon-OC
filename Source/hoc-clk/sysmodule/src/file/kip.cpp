@@ -95,7 +95,6 @@ namespace kip {
         CUST_WRITE_FIELD_BATCH(&table, low_t6_tRTW, config::GetConfigValue(KipConfigValue_low_t6_tRTW));
         CUST_WRITE_FIELD_BATCH(&table, low_t7_tWTR, config::GetConfigValue(KipConfigValue_low_t7_tWTR));
         CUST_WRITE_FIELD_BATCH(&table, low_t8_tREFI, config::GetConfigValue(KipConfigValue_low_t8_tREFI));
-        CUST_WRITE_FIELD_BATCH(&table, t2_tRP_cap, config::GetConfigValue(KipConfigValue_t2_tRP_cap));
 
         CUST_WRITE_FIELD_BATCH(&table, readLatency1333, config::GetConfigValue(KipConfigValue_read_latency_1333));
         CUST_WRITE_FIELD_BATCH(&table, readLatency1600, config::GetConfigValue(KipConfigValue_read_latency_1600));
@@ -281,7 +280,6 @@ namespace kip {
         configValues.values[KipConfigValue_low_t6_tRTW] = cust_get_low_tRTW(&table);
         configValues.values[KipConfigValue_low_t7_tWTR] = cust_get_low_tWTR(&table);
         configValues.values[KipConfigValue_low_t8_tREFI] = cust_get_low_tREFI(&table);
-        configValues.values[KipConfigValue_t2_tRP_cap] = cust_get_tRP_cap(&table);
 
         configValues.values[KipConfigValue_read_latency_1333] = cust_get_read_latency_1333(&table);
         configValues.values[KipConfigValue_read_latency_1600] = cust_get_read_latency_1600(&table);

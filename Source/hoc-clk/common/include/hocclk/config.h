@@ -109,8 +109,6 @@ typedef enum {
     KipConfigValue_low_t7_tWTR,
     KipConfigValue_low_t8_tREFI,
 
-    KipConfigValue_t2_tRP_cap,
-
     KipConfigValue_read_latency_1333,
     KipConfigValue_read_latency_1600,
     KipConfigValue_read_latency_1866,
@@ -391,9 +389,6 @@ static inline const char* hocclkFormatConfigValue(HocClkConfigValue val, bool pr
         case KipConfigValue_low_t8_tREFI:
             return pretty ? "Low T8 - tREFI" : "low_t7_tREFI";
 
-        case KipConfigValue_t2_tRP_cap:
-            return pretty ? "t2 - trp 1333WL Cap" : "t2_tRP_cap";
-
         case KipConfigValue_read_latency_1333:
             return pretty ? "1333 Read Latency" : "read_latency_1333";
         case KipConfigValue_read_latency_1600:
@@ -666,7 +661,6 @@ static inline uint64_t hocclkValidConfigValue(HocClkConfigValue val, uint64_t in
         case KipConfigValue_low_t6_tRTW:
         case KipConfigValue_low_t7_tWTR:
         case KipConfigValue_low_t8_tREFI:
-        case KipConfigValue_t2_tRP_cap:
         case KipConfigValue_read_latency_1333:
         case KipConfigValue_read_latency_1600:
         case KipConfigValue_read_latency_1866:

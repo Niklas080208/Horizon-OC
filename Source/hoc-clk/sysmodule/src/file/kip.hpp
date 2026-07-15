@@ -54,8 +54,6 @@ namespace kip {
         u32 t7_tWTR;
         u32 t8_tREFI;
 
-        u32 t2_tRP_cap;
-
         u32 timingEmcTbreak;
         u32 low_t1_tRCD;
         u32 low_t2_tRP;
@@ -269,9 +267,6 @@ namespace kip {
     static inline bool cust_set_tREFI(const char *p, u32 v) {
         CUST_WRITE_FIELD(p, t8_tREFI, v);
     }
-    static inline bool cust_set_tRP_cap(const char *p, u32 v) {
-        CUST_WRITE_FIELD(p, t2_tRP_cap, v);
-    }
     static inline bool cust_set_timing_emc_tbreak(const char *p, u32 v) {
         CUST_WRITE_FIELD(p, timingEmcTbreak, v);
     }
@@ -483,9 +478,6 @@ namespace kip {
     }
     static inline u32 cust_get_tREFI(const CustomizeTable *t) {
         return CUST_GET_FIELD(t, t8_tREFI);
-    }
-    static inline u32 cust_get_tRP_cap(const CustomizeTable *t) {
-        return CUST_GET_FIELD(t, t2_tRP_cap);
     }
     static inline u32 cust_get_timing_emc_tbreak(const CustomizeTable *t) {
         return CUST_GET_FIELD(t, timingEmcTbreak);
