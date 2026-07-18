@@ -1250,7 +1250,10 @@ class RamSubmenuGui : public MiscGui {
                 NamedValue("3200 MHz", 3200000, "JEDEC."),
                 NamedValue("3233 MHz", 3233000, "High speedo needed!"),
                 NamedValue("3266 MHz", 3266000, "High speedo needed!"),
-                NamedValue("3300 MHz", 3300000, "High speedo needed!"),
+                NamedValue("3300 MHz", 3300000, "Extreme speedo needed!"),
+                NamedValue("3333 MHz", 3333000, "Extreme speedo needed!"),
+                NamedValue("3366 MHz", 3366000, "Extreme speedo needed!"),
+                NamedValue("3400 MHz", 3400000, "Happy's speedo needed!"),
             };
         }
 
