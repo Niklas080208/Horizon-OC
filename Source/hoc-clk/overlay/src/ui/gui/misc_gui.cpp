@@ -1398,13 +1398,10 @@ class RamTimingsSubmenuGui : public MiscGui {
             NamedValue("3200 MHz", 3200000, "JEDEC."),
             NamedValue("3233 MHz", 3233000, "High speedo needed"),
             NamedValue("3266 MHz", 3266000, "High speedo needed!"),
-            NamedValue("3300 MHz", 3300000, "High speedo needed!"),
-            // NamedValue("3333MHz (Needs extreme Speedo/PLL)", 3333000),
-            // NamedValue("3366MHz (Needs extreme Speedo/PLL)", 3366000),
-            // NamedValue("3400MHz (Needs extreme Speedo/PLL)", 3400000),
-            // NamedValue("3433MHz (Needs ridiculous Speedo/PLL)", 3433000),
-            // NamedValue("3466MHz (Needs ridiculous Speedo/PLL)", 3466000),
-            // NamedValue("3500MHz (Needs ridiculous Speedo/PLL)", 3500000),
+            NamedValue("3300 MHz", 3300000, "Extreme speedo needed!"),
+            NamedValue("3333 MHz", 3333000, "Extreme speedo needed!"),
+            NamedValue("3366 MHz", 3366000, "Extreme speedo needed!"),
+            NamedValue("3400 MHz", 3400000, "Happy's speedo needed!"),
         };
         RamDisplayUnit unit = (RamDisplayUnit)this->configList->values[HocClkConfigValue_RamDisplayUnit];
 
@@ -2194,7 +2191,10 @@ class CpuSubmenuGui : public MiscGui {
                 NamedValue("3200 MHz", 3200000, "JEDEC."),
                 NamedValue("3233 MHz", 3233000, "High speedo needed!"),
                 NamedValue("3266 MHz", 3266000, "High speedo needed!"),
-                NamedValue("3300 MHz", 3300000, "High speedo needed!"),
+                NamedValue("3300 MHz", 3300000, "Extreme speedo needed!"),
+                NamedValue("3333 MHz", 3333000, "Extreme speedo needed!"),
+                NamedValue("3366 MHz", 3366000, "Extreme speedo needed!"),
+                NamedValue("3400 MHz", 3400000, "Happy's speedo needed!"),
             };
             addConfigToggle(HocClkConfigValue_AutoRAMCPUOverclock, "Auto CPU RAM OC");
             addConfigButton(HocClkConfigValue_AutoRamCpuCpuOCFreq, "Auto CPU RAM OC CPU clock", ValueRange(0, 0, 1, "", 1), "CPU Clock",
