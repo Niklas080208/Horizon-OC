@@ -135,6 +135,8 @@ if [ "$EXT" -eq 1 ]; then
 
     mkdir -p "$DIST_DIR/bootloader/sys/"
     cp -v output/nyx.bin "$ROOT_DIR"/dist/bootloader/sys/nyx.bin
+    cp -v output/hekate.bin "$ROOT_DIR"/dist/bootloader/update.bin
+    cp -v output/hekate.bin "$ROOT_DIR"/dist/payload.bin
 
     cd "$ROOT_DIR"/Source/Benchmark-Toolbox
     echo
