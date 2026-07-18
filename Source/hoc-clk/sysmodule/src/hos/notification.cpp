@@ -28,7 +28,7 @@ namespace notification {
         }
         fclose(flagFile);
 
-        const std::string translated = lang::translate(message);
+        const std::string translated = lang::Translate(message);
 
         std::string filename = "hoc-" + std::to_string(std::time(nullptr)) + ".notify";
         std::string fullPath = "sdmc:/config/ultrahand/notifications/" + filename;

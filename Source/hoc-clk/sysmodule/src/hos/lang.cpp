@@ -27,8 +27,8 @@
 namespace lang {
     namespace {
 
-        constexpr const char *kUltrahandConfigPath = "sdmc:/config/ultrahand/config.ini";
-        constexpr const char *kLangDir = "sdmc:" FILE_CONFIG_DIR "/lang/";
+        constexpr const char *UltrahandConfigPath = "sdmc:/config/ultrahand/config.ini";
+        constexpr const char *LangDir = "sdmc:" FILE_CONFIG_DIR "/lang/";
 
         std::string gLoadedLang;
         std::unordered_map<std::string, std::string> gCache;
@@ -89,7 +89,7 @@ namespace lang {
         }
 
         bool LoadLangFile(const std::string &langCode) {
-            const std::string path = std::string(kLangDir) + langCode + ".json";
+            const std::string path = std::string(LangDir) + langCode + ".json";
             std::string content;
             if (!ReadFileContent(path, content)) {
                 return false;
@@ -103,7 +103,7 @@ namespace lang {
 
         std::string GetDefaultLang() {
             char buf[32] = {};
-            ini_gets("ultrahand", "default_lang", "en", buf, sizeof(buf), kUltrahandConfigPath);
+            ini_gets("ultrahand", "default_lang", "en", buf, sizeof(buf), UltrahandConfigPath);
             if (buf[0] == '\0') {
                 return "en";
             }
@@ -123,7 +123,7 @@ namespace lang {
 
     }  // namespace
 
-    std::string translate(const std::string &text) {
+    std::string Translate(const std::string &text) {
         if (text.empty()) {
             return text;
         }
